@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Honeybee's BTO Journey</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: fixed left sidebar (drawer on mobile) + scrolling content column of rounded cards; honeycomb texture in the background. */
+:root{
+  --blue:#B9DDF5; --blue-soft:#EAF6FF; --blue-deep:#47799F; --honey:#F9D878; --honey-deep:#E9B949;
+  --cream:#FFF9EE; --card:#FFFFFF; --text:#354B5E; --muted:#6B8398; --line:#DCEAF5;
+  --bg:#F6FBFF; --ok:#3E9C74; --ok-soft:#E3F5EC; --warn:#B7791F; --warn-soft:#FFF3D6; --bad:#C0565B; --bad-soft:#FCE8E8;
+  --shadow:0 6px 24px rgba(71,121,159,.10); --shadow-lg:0 14px 40px rgba(71,121,159,.16);
+  --hex:rgba(71,121,159,.06);
+  --f-display:"Fredoka","Nunito",ui-rounded,system-ui,sans-serif;
+  --f-body:"Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:20px; --r-sm:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --blue:#2E5573; --blue-soft:#1B2C3B; --blue-deep:#9CCBEE; --honey:#E8C25A; --honey-deep:#F4D27A;
+  --cream:#232A30; --card:#1E2833; --text:#E4EEF6; --muted:#9DB3C6; --line:#2E3F50;
+  --bg:#141C25; --ok:#6CCB9F; --ok-soft:#1C3A2E; --warn:#F0C062; --warn-soft:#3A3020; --bad:#EE8F93; --bad-soft:#3E2427;
+  --shadow:0 6px 24px rgba(0,0,0,.35); --shadow-lg:0 14px 40px rgba(0,0,0,.45); --hex:rgba(156,203,238,.05); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --blue:#2E5573; --blue-soft:#1B2C3B; --blue-deep:#9CCBEE; --honey:#E8C25A; --honey-deep:#F4D27A;
+  --cream:#232A30; --card:#1E2833; --text:#E4EEF6; --muted:#9DB3C6; --line:#2E3F50;
+  --bg:#141C25; --ok:#6CCB9F; --ok-soft:#1C3A2E; --warn:#F0C062; --warn-soft:#3A3020; --bad:#EE8F93; --bad-soft:#3E2427;
+  --shadow:0 6px 24px rgba(0,0,0,.35); --shadow-lg:0 14px 40px rgba(0,0,0,.45); --hex:rgba(156,203,238,.05); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--f-body);font-size:15.5px;line-height:1.6;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='98' viewBox='0 0 56 98'%3E%3Cpath d='M28 0l28 16v33L28 65 0 49V16zM28 65l28 16v33M28 65L0 81v33' fill='none' stroke='%2347799F' stroke-opacity='.07' stroke-width='1.2'/%3E%3C/svg%3E");}
+h1,h2,h3,h4{font-family:var(--f-display);font-weight:600;line-height:1.25;text-wrap:balance;margin:0}
+h1{font-size:clamp(1.7rem,3.2vw,2.3rem)} h2{font-size:1.45rem} h3{font-size:1.12rem} h4{font-size:1rem}
+p{margin:0} a{color:var(--blue-deep);font-weight:700}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--honey-deep);outline-offset:2px;border-radius:8px}
+.app{display:grid;grid-template-columns:270px minmax(0,1fr);min-height:100vh}
+
+/* sidebar */
+.side{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--card);border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;gap:18px;z-index:30}
+.brand{display:flex;gap:10px;align-items:center;padding:4px 8px}
+.brand b{font-family:var(--f-display);font-size:1.2rem;font-weight:600;line-height:1.15}
+.brand small{display:block;color:var(--muted);font-size:.78rem;font-weight:600}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;text-decoration:none;color:var(--text);font-weight:700;transition:background .2s,transform .2s}
+.nav a:hover{background:var(--blue-soft);transform:translateX(2px)}
+.nav a.on{background:var(--blue);color:var(--text)}
+:root[data-theme="dark"] .nav a.on{color:#fff}
+.nav svg{width:19px;height:19px;flex:none;color:var(--blue-deep)}
+.side-prog{margin-top:auto;background:var(--cream);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.side-prog .lbl{font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.side-prog .pct{font-family:var(--f-display);font-size:1.9rem;font-weight:600}
+.sync{font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:6px;margin-top:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.dot.live{background:var(--ok)} .dot.local{background:var(--honey-deep)}
+
+/* top bar mobile */
+.topbar{display:none}
+.main{padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-width:0}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+
+/* generic */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);min-width:0}
+.card.soft{background:var(--blue-soft);box-shadow:none}
+.card.cream{background:var(--cream);box-shadow:none}
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:repeat(3,minmax(0,1fr))} .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.eyebrow{font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue-deep)}
+.muted{color:var(--muted)} .small{font-size:.86rem}
+.lead{font-size:1.05rem;max-width:68ch}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 11px;border-radius:99px;font-size:.76rem;font-weight:800;letter-spacing:.03em;white-space:nowrap}
+.p-ok{background:var(--ok-soft);color:var(--ok)} .p-warn{background:var(--warn-soft);color:var(--warn)} .p-info{background:var(--blue-soft);color:var(--blue-deep)} .p-bad{background:var(--bad-soft);color:var(--bad)} .p-honey{background:var(--honey);color:#5A4410}
+.bar{height:12px;border-radius:99px;background:var(--blue-soft);overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--blue-deep),var(--blue) 70%,var(--honey));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--text);font:700 .92rem var(--f-body);cursor:pointer;text-decoration:none;transition:transform .15s,box-shadow .15s,background .15s}
+.btn:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.btn.primary{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff}
+:root[data-theme="dark"] .btn.primary{color:#10202d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.primary{color:#10202d}}
+.btn.honey{background:var(--honey);border-color:var(--honey);color:#4A3A0E}
+.btn svg{width:17px;height:17px}
+.ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:var(--blue-soft);color:var(--blue-deep);flex:none}
+.ico.h{background:var(--honey);color:#5A4410}
+.ico svg{width:21px;height:21px}
+.note{border-radius:var(--r-sm);padding:12px 14px;font-size:.92rem;display:flex;gap:10px;align-items:flex-start}
+.note svg{flex:none;width:18px;height:18px;margin-top:3px}
+.note.info{background:var(--blue-soft);color:var(--text)} .note.warn{background:var(--warn-soft)} .note.ok{background:var(--ok-soft)}
+.note.warn svg{color:var(--warn)} .note.info svg{color:var(--blue-deep)} .note.ok svg{color:var(--ok)}
+ul.clean{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:5px}
+ul.clean li::marker{color:var(--honey-deep)}
+ol.steps{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:8px}
+ol.steps li::marker{font-family:var(--f-display);font-weight:600;color:var(--blue-deep)}
+
+/* checklist */
+.chk{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:12px;cursor:pointer;transition:background .15s;border:1px solid transparent}
+.chk:hover{background:var(--blue-soft)}
+.chk input{appearance:none;-webkit-appearance:none;width:22px;height:22px;border-radius:8px;border:2px solid var(--blue-deep);flex:none;margin:1px 0 0;display:grid;place-items:center;cursor:pointer;background:var(--card);transition:background .2s,border-color .2s}
+.chk input:checked{background:var(--honey);border-color:var(--honey-deep)}
+.chk input:checked::after{content:"";width:6px;height:11px;border:solid #5A4410;border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.chk input:disabled{cursor:default}
+.chk.done span{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--honey-deep)}
+.chk small{display:block;color:var(--muted);text-decoration:none!important;font-size:.82rem}
+.cl-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.mini{font-size:.8rem;font-weight:800;color:var(--muted)}
+
+/* forms */
+label.f{display:flex;flex-direction:column;gap:5px;font-weight:700;font-size:.88rem;min-width:0}
+label.f span.h{font-weight:500;color:var(--muted);font-size:.8rem}
+input[type=text],input[type=number],input[type=date],select,textarea{font:600 .95rem var(--f-body);color:var(--text);background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-width:0}
+textarea{min-height:90px;resize:vertical;font-weight:500}
+input:focus,select:focus,textarea:focus{border-color:var(--blue-deep)}
+
+/* tabs */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;background:var(--blue-soft);padding:6px;border-radius:16px}
+.tabs button{flex:1 1 auto;border:0;background:transparent;padding:10px 14px;border-radius:12px;font:700 .92rem var(--f-body);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.tabs button.on{background:var(--card);box-shadow:var(--shadow)}
+.tabs button svg{width:17px;height:17px}
+
+/* accordions */
+details.acc{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden}
+details.acc+details.acc{margin-top:10px}
+details.acc summary{list-style:none;cursor:pointer;padding:14px 18px;font-weight:800;display:flex;align-items:center;gap:12px}
+details.acc summary::-webkit-details-marker{display:none}
+details.acc summary .chev{margin-left:auto;transition:transform .2s;color:var(--muted)}
+details.acc[open] summary .chev{transform:rotate(180deg)}
+details.acc .body{padding:0 18px 18px;display:flex;flex-direction:column;gap:12px}
+
+/* timeline */
+.tl{position:relative;display:flex;flex-direction:column;gap:16px;padding-left:34px}
+.tl::before{content:"";position:absolute;left:14px;top:8px;bottom:8px;width:3px;border-radius:3px;background:linear-gradient(var(--blue),var(--honey))}
+.tl-item{position:relative}
+.tl-dot{position:absolute;left:-34px;top:14px;width:31px;height:31px;border-radius:50%;background:var(--card);border:3px solid var(--blue);display:grid;place-items:center;font:600 .82rem var(--f-display);color:var(--blue-deep)}
+.tl-item.done .tl-dot{background:var(--honey);border-color:var(--honey-deep);color:#5A4410}
+.tl-item.now .tl-dot{border-color:var(--blue-deep);box-shadow:0 0 0 5px var(--blue-soft)}
+
+/* section blocks within stages */
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fact{background:var(--blue-soft);border-radius:14px;padding:14px}
+.fact h4{display:flex;align-items:center;gap:8px;font-size:.95rem;margin-bottom:6px}
+.fact h4 svg{width:17px;height:17px;color:var(--blue-deep)}
+.fact.bad{background:var(--bad-soft)} .fact.bad h4 svg{color:var(--bad)}
+.fact.money{background:var(--cream);border:1px solid var(--line)} .fact.money h4 svg{color:var(--honey-deep)}
+
+/* tables */
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--blue-soft);font-weight:800;font-size:.82rem;letter-spacing:.03em}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;align-items:center;background:linear-gradient(135deg,var(--blue-soft),var(--card) 55%,var(--cream));border:1px solid var(--line);border-radius:28px;padding:30px;box-shadow:var(--shadow);overflow:hidden;position:relative}
+.hero svg.house{width:100%;max-width:340px;height:auto;justify-self:center}
+.bee-float{animation:float 4s ease-in-out infinite}
+.bee-float.b2{animation-delay:-2s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.stat{display:flex;flex-direction:column;gap:4px}
+.stat .v{font-family:var(--f-display);font-size:1.6rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat .k{font-size:.8rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.status{display:flex;flex-direction:column;gap:10px;padding:18px}
+.status .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.page-head{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.page-head .ico{width:54px;height:54px;border-radius:18px}
+.page-head .ico svg{width:26px;height:26px}
+.money-big{font-family:var(--f-display);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line);font-variant-numeric:tabular-nums}
+.kv:last-child{border-bottom:0}
+.kv b{white-space:nowrap}
+.search{position:relative}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted)}
+.search input{padding-left:40px}
+.stars{display:flex;gap:4px}
+.stars button{border:0;background:none;cursor:pointer;padding:2px;color:var(--line);font-size:1.25rem;line-height:1}
+.stars button.on{color:var(--honey-deep)}
+.src{font-size:.8rem;color:var(--muted)}
+.fade-in{animation:fade .35s ease both}
+@keyframes fade{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+@media (max-width:1000px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;left:0;top:0;bottom:0;width:min(290px,86vw);height:auto;transform:translateX(-105%);transition:transform .25s;box-shadow:var(--shadow-lg);padding-top:calc(22px + env(safe-area-inset-top,0px));padding-left:max(16px,env(safe-area-inset-left,0px))}
+  .side.open{transform:none}
+  .scrim{position:fixed;inset:0;background:rgba(20,30,40,.35);z-index:25}
+  .topbar{display:flex;position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--card);border-bottom:1px solid var(--line);padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));align-items:center;gap:12px}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--card)}
+  .topbar .bar{flex:1;height:9px}
+  .topbar b{font-family:var(--f-display);font-weight:600;white-space:nowrap}
+  .hero{grid-template-columns:minmax(0,1fr);padding:22px}
+  .hero svg.house{max-width:260px}
+}
+@media (max-width:600px){.g2,.g3,.g4,.facts{grid-template-columns:minmax(0,1fr)}.card{padding:18px}.tabs button{flex:1 1 45%}}
+</style>
+
+<div class="app">
+  <aside class="side" id="side" aria-label="Main navigation">
+    <div class="brand">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2l16 9v18l-16 9-16-9V11z" fill="var(--honey)"/><ellipse cx="20" cy="22" rx="7" ry="5.5" fill="#F9D878" stroke="#354B5E" stroke-width="1.6"/><path d="M17 17.5v9M21 16.8v10.4" stroke="#354B5E" stroke-width="1.8"/><ellipse cx="16" cy="15" rx="4" ry="3" fill="#fff" stroke="#47799F" stroke-width="1.2" opacity=".9"/><ellipse cx="23" cy="14.5" rx="4" ry="3" fill="#fff" stroke="#47799F" stroke-width="1.2" opacity=".9"/></svg>
+      <div><b>Honeybee's<br>BTO Journey</b><small>Tampines · Feb 2027</small></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-prog">
+      <div class="lbl">Road to applying</div>
+      <div class="pct" id="sidePct">0%</div>
+      <div class="bar"><i id="sideBar" style="width:0"></i></div>
+      <div class="small muted" id="sideStage" style="margin-top:8px"></div>
+      <div class="sync"><span class="dot" id="syncDot"></span><span id="syncTxt">Connecting…</span></div>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+  <div style="min-width:0">
+    <header class="topbar">
+      <button class="btn" id="menuBtn" aria-label="Open menu" aria-expanded="false"><i data-lucide="menu"></i></button>
+      <b>🐝 BTO Journey</b>
+      <div class="bar" aria-label="Overall progress"><i id="topBar" style="width:0"></i></div>
+      <span class="mini" id="topPct">0%</span>
+    </header>
+    <main class="main"><div class="wrap" id="view"></div></main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+<script>
+/* ============================== DATA ============================== */
+const NAV=[
+ ["home","house","Home Dashboard"],["hfe","file-check-2","HFE Application"],["bto","route","BTO Application Guide"],
+ ["tampines","map-pin","Tampines 2027"],["finance","piggy-bank","Financial Planner"],["documents","folder-check","Documents Checklist"],
+ ["timeline","calendar-days","Timeline & Milestones"],["knowledge","circle-help","BTO Knowledge Centre"]];
+
+const LINKS={
+ portal:["HDB Flat Portal","https://homes.hdb.gov.sg/home/landing"],
+ hdb:["HDB website","https://www.hdb.gov.sg"],
+ mynicehome:["MyNiceHome BTO buying guide","https://www.mynicehome.gov.sg/get-started/hdb-bto-sbf-buying-guide/"],
+ mndguide:["MND BTO homebuying timeline","https://www.mnd.gov.sg/bto-homebuying-guide/bto-timeline"],
+ afl:["HDB: Sign Agreement for Lease","https://www.hdb.gov.sg/residential/buying-a-flat/buying-procedure-for-new-flats/sign-agreement-for-lease"],
+ askhfe:["Ask.gov.sg: HFE processing","https://ask.gov.sg/hdb/questions/clwe21ucf003du9lxu3ycpdkv"],
+ cpf:["CPF Board","https://www.cpf.gov.sg"],
+ singpass:["Singpass","https://www.singpass.gov.sg"],
+ iras:["IRAS stamp duty","https://www.iras.gov.sg/taxes/stamp-duty/for-property"],
+ spgroup:["SP Group (utilities)","https://www.spgroup.com.sg"]
+};
+const L=k=>`<a href="${LINKS[k][1]}" target="_blank" rel="noopener">${LINKS[k][0]} ↗</a>`;
+
+// Milestones that make up "successfully applying"
+const MILESTONES=[
+ {id:"ms.elig",t:"Complete HFE eligibility check",fixed:true,date:"Done"},
+ {id:"ms.hfeApply",t:"Submit HFE application",date:"Target: mid-Dec 2026"},
+ {id:"ms.hfeLetter",t:"Receive HFE letter",date:"Up to ~1 month after complete submission"},
+ {id:"ms.grants",t:"Review HFE result: loan & grants",date:"Right after letter"},
+ {id:"ms.research",t:"Research Tampines BTO sites",date:"Dec 2026 – Feb 2027"},
+ {id:"ms.finance",t:"Prepare finances & budget",date:"Before launch"},
+ {id:"ms.docs",t:"Gather key documents",date:"Before launch"},
+ {id:"ms.prep",t:"Prepare BTO application (project + flat type chosen)",date:"Launch week"},
+ {id:"ms.apply",t:"Apply when the Feb 2027 launch opens",date:"Feb 2027 (date TBA)"}
+];
+
+const CL={
+ hfe1:[["Logged in to HDB Flat Portal with Singpass"],["Completed Step 1: eligibility check"],["Noted which flat types we may buy"]],
+ hfe2:[
+  ["Both of us can log in with Singpass (2FA app working)","Each applicant consents and declares separately"],
+  ["Decided our application scheme (e.g. Fiancé/Fiancée or Public Scheme)","Check our marriage plans match the scheme we choose"],
+  ["Gathered last 12 months of income info for both of us","Payslips, CPF contribution history, or IRAS NOA if self-employed"],
+  ["Checked CPF statements (OA balances) on the CPF website","HDB pulls CPF data via Myinfo, but know your numbers"],
+  ["Listed any property owned / disposed (local & overseas) for both","Includes private property, HDB flats, inheritance"],
+  ["Prepared employment letters if job changed recently or on probation"],
+  ["Filled in household members & estimated income accurately"],
+  ["Uploaded all supporting documents HDB requested"],
+  ["Submitted Step 2 within 30 days of the Step 1 check"],
+  ["Saved the application reference number"],
+  ["Checking status on the Flat Portal (My Flat Dashboard) regularly"]
+ ],
+ hfe3:[["Downloaded and saved our HFE letter (PDF)"],["Noted the expiry date (9 months from issue)"],["Recorded max HDB loan amount"],["Recorded grant types & amounts (EHG etc.)"],["Updated the Financial Planner with HFE numbers"]],
+ s1:[["Valid HFE letter in hand"],["Confirmed eligible flat types (2-room Flexi to 5-room)"],["Know our grant amounts"],["Set a total housing budget"],["Shortlisted Tampines sites"],["Picked preferred & backup flat types"],["Read this whole guide together"],["Both Singpass logins working"],["Understood $10 fee and balloting"]],
+ s2:[["Checked HDB announcement for Feb 2027 dates"],["Read Tampines project brochures"],["Compared indicative prices by flat type"],["Checked Standard / Plus / Prime classification & conditions"],["Visited the site area in person"],["Rated each project in the Tampines page"]],
+ s3:[["Logged in to HDB Flat Portal with Singpass"],["Selected the project"],["Selected the flat type"],["Co-applicant accepted invitation / declared details"],["Paid $10 application fee"],["Saved acknowledgement & application number"]],
+ s4:[["Checked ballot result on Flat Portal"],["Understood our queue number vs units available"],["If unsuccessful: noted extra ballot chance for next time"]],
+ s5:[["Received appointment letter & date"],["Shortlisted 5–10 preferred units (check live availability)"],["Brought documents & payment mode"],["Paid option fee"],["Booked our unit"]],
+ s6:[["Received AFL appointment notice"],["Arranged HDB loan / bank loan"],["Paid downpayment (CPF/cash)"],["Paid stamp duty & legal fees"],["Signed Agreement for Lease"]],
+ s7:[["Tracking construction progress"],["Marriage certificate submitted (if Fiancé/Fiancée Scheme)"],["Received key collection notice"],["Paid remaining downpayment & fees"],["Collected keys & inspected for defects"],["Reported defects within the defects liability period"]],
+ s8:[["Shortlisted HDB-registered renovation contractors"],["Renovation permit sorted (contractor applies)"],["Activated electricity & water (SP Group)"],["Fire insurance under HDB Fire Insurance Scheme"],["Considered home contents insurance"],["Bought essential furniture & appliances"],["Moved in! 🏡"]],
+ fin:[["Know our combined CPF OA balance"],["Set aside cash for option fee + fees"],["Agreed on monthly instalment comfort zone"],["Emergency fund kept separate from house fund"],["Budgeted for renovation & furnishing"]]
+};
+
+const DOCS=[
+ {g:"Identity",i:"id-card",items:[["NRIC (both)","Physical card or Singpass app digital IC"],["Singpass with 2FA (both)","singpass.gov.sg"],["Birth certificates (if requested)","Usually only if HDB asks"]]},
+ {g:"Relationship",i:"heart",items:[["Marriage certificate (if married)","Registry of Marriages"],["Notice of marriage / ROM date planned","Fiancé/Fiancée Scheme: submit marriage cert before key collection"]]},
+ {g:"Income & employment",i:"briefcase",items:[["12 months of payslips (both)","From HR / payroll portal"],["CPF contribution history (both)","cpf.gov.sg → My Statements"],["Employment letter (if new job / probation)","HR stating start date, salary"],["IRAS Notice of Assessment (if self-employed)","myTax Portal"]]},
+ {g:"CPF & finances",i:"wallet",items:[["CPF OA statements (both)","cpf.gov.sg"],["Bank statements / savings summary","Shows cash available for fees"],["HFE letter PDF","HDB Flat Portal"]]},
+ {g:"Property declarations",i:"building-2",items:[["Details of any property owned / sold in last 30 months","Local or overseas, incl. inherited"],["Proof of property disposal (if any)","Sale & purchase docs"]]},
+ {g:"Booking & beyond",i:"key-round",items:[["Appointment letter (flat booking)","Sent by HDB after ballot"],["Payment card / CPF for option fee","Check accepted modes in letter"],["Loan letter (HDB loan via HFE or bank Letter of Offer)","Needed for AFL"]]}
+];
+
+const STAGES=[
+ {k:"s1",t:"Before the BTO Launch",i:"clipboard-list",when:"Now → launch day",
+  mean:"This is our homework phase. HDB only accepts BTO applications from households that hold a valid HFE letter, so everything here is about getting that letter and deciding what we can afford before the launch window opens.",
+  todo:["Get a valid HFE letter (must be valid when we apply)","Check which flat types we qualify for on the letter","Understand our grants (e.g. Enhanced CPF Housing Grant up to $120,000 for eligible first-timer couples)","Work out a total budget and a comfortable monthly instalment","Research Tampines and shortlist sites","Pick a preferred flat type plus a backup","Make sure Singpass 2FA works on both phones","Understand the ballot, queue numbers and the $10 fee"],
+  docs:"HFE letter, NRIC, Singpass, income records (already submitted for HFE).",
+  dead:"HDB advises applying for the HFE letter early. Processing takes up to a month after all documents are in, so for a Feb 2027 launch aim to submit by mid-December 2026.",
+  cost:"None yet. HFE application itself has no fee mentioned by HDB.",
+  mist:["Applying for HFE too late and missing the launch","Not checking the HFE expiry date (9 months)","Choosing a flat type above what the loan + grants can comfortably cover"]},
+ {k:"s2",t:"BTO Launch Announcement",i:"megaphone",when:"A few weeks before launch → launch week",
+  mean:"HDB announces the towns months ahead (Feb 2027 towns were announced on 4 Nov 2026), then releases full project details — names, site plans, flat types, indicative prices — on launch day.",
+  todo:["Watch HDB press releases and the HDB Flat Portal for the exact Feb 2027 dates","Open each project's brochure: site plan, unit mix, layouts, estimated completion","Note indicative price range per flat type (these exclude grants)","Check the classification: Standard, Plus or Prime — Plus/Prime come with a 10-year MOP and resale conditions","Evaluate transport (MRT walking time), schools, markets, parks, future developments","Look at application rates as they update during the window"],
+  docs:"None. Save brochures and price lists for reference.",
+  dead:"The application window is usually about a week. Exact dates come with the launch.",
+  cost:"None.",
+  mist:["Judging only by price — check completion date and classification","Ignoring the noise of highways/MRT tracks on the site plan","Not visiting the actual site area"]},
+ {k:"s3",t:"Submit BTO Application",i:"send",when:"During the launch window",
+  mean:"We submit one application, for one project and one flat type, as a household. One of us is the main applicant; the other is the co-applicant who must declare and consent too.",
+  todo:["Go to the HDB Flat Portal and log in with Singpass","Choose 'Apply for BTO', select the Tampines project","Select the flat type (only types on our HFE letter are allowed)","Confirm household details pulled from the HFE application","Co-applicant logs in to accept / declare","Pay the $10 non-refundable application fee online","Submit and save the acknowledgement"],
+  docs:"Valid HFE letter; Singpass for both.",
+  dead:"Must submit before the window closes. Applying on day one gives no advantage — the ballot is random.",
+  cost:"$10 application fee (non-refundable). Payment methods are shown on the portal at checkout; check them on the day.",
+  mist:["Thinking early submission improves chances","Co-applicant forgetting to complete their part","Applying for a flat type we cannot afford just because odds look better"]},
+ {k:"s4",t:"Balloting Results",i:"dices",when:"Typically within a few weeks after the window",
+  mean:"HDB runs a computer ballot. Each household gets a queue number, or an 'unsuccessful' result. A queue number is our position in line to pick a unit — it is not a guarantee of a flat.",
+  todo:["Check results on the HDB Flat Portal","Compare our queue number to the number of units for our flat type (and quota for our applicant group)","If the number is well beyond supply, plan for the next exercise","If unsuccessful, note any added ballot chance for our next attempt"],
+  docs:"None.",
+  dead:"Watch for the result notification.",
+  cost:"None.",
+  mist:["Celebrating a queue number that exceeds the supply","Not reapplying in the next exercise"]},
+ {k:"s5",t:"Flat Booking Appointment",i:"calendar-check",when:"Weeks to months after the ballot, by queue order",
+  mean:"Households are invited in queue order to pick a unit. When our turn comes we choose from units still available and pay the option fee to book.",
+  todo:["Check live unit availability on the portal before the appointment","Shortlist many units (floor, facing, stack) since favourites go fast","Bring documents and payment","Decide calmly with each other","Pay the option fee and sign booking documents"],
+  docs:"NRIC, appointment letter, any documents HDB lists in the letter.",
+  dead:"Attend on the date given. Missing or declining counts as non-selection, which may affect future applications (check HDB's current rules).",
+  cost:"Option fee: $500 (2-room Flexi), $1,000 (3-room), $2,000 (4-room/5-room). It counts toward the downpayment.",
+  mist:["Shortlisting only 2–3 units","Not deciding on priorities (high floor vs. facing vs. price) beforehand","Declining without understanding the consequences"]},
+ {k:"s6",t:"Sign Agreement for Lease",i:"pen-line",when:"Within ~9 months after booking (per HDB)",
+  mean:"The Agreement for Lease (AFL) is the legal contract to buy the flat. We pay the first chunk of downpayment and set up the loan.",
+  todo:["Have a valid loan: HDB loan (HFE letter) or bank Letter of Offer","Pay downpayment from CPF OA and/or cash","Pay stamp duty and legal/conveyancing fees","Sign the AFL"],
+  docs:"NRIC, loan letter, CPF details.",
+  dead:"The date in HDB's appointment notice.",
+  cost:"HDB loan: 10% at AFL and 15% at key collection (25% total). The Staggered Downpayment Scheme, if eligible, lets you pay 5% at AFL and 20% at keys. Option fee and grants offset the downpayment. Plus Buyer's Stamp Duty and legal fees.",
+  mist:["Using all CPF and keeping no buffer","Not reading the conditions (MOP, occupation rules)","Taking a bank loan without comparing — you can't switch back to HDB loan later"]},
+ {k:"s7",t:"Construction & Key Collection",i:"hard-hat",when:"Usually several years (see estimated completion date)",
+  mean:"HDB builds the flat. The brochure shows an estimated completion date; key collection follows once it's ready.",
+  todo:["Track progress updates on My Flat Dashboard","If on Fiancé/Fiancée Scheme, submit marriage certificate before key collection","Pay remaining downpayment and fees at key collection","Inspect the flat and report defects"],
+  docs:"Marriage certificate (if applicable), NRIC, loan documents.",
+  dead:"Key collection appointment. Defects should be reported within the defects liability period HDB states.",
+  cost:"Remaining downpayment (e.g. 15% on HDB loan), stamp/legal fees if any balance, fire insurance premium.",
+  mist:["Not getting married in time (Fiancé/Fiancée Scheme)","Skipping a thorough defect inspection"]},
+ {k:"s8",t:"Renovation & Moving In",i:"paint-roller",when:"After key collection",
+  mean:"Our blank canvas. Renovation in HDB flats follows HDB guidelines and must use HDB-registered contractors for certain works.",
+  todo:["Engage an HDB-registered renovation contractor","Contractor applies for renovation permit where needed","Activate electricity, water & gas via SP Group","Ensure HDB Fire Insurance Scheme coverage (compulsory if on HDB loan)","Consider home contents insurance","Buy essential furniture and appliances","Plan the move and update address"],
+  docs:"Key collection docs, renovation permit (via contractor).",
+  dead:"Follow HDB rules on renovation hours and works that need approval.",
+  cost:"Renovation, furniture, appliances, insurance. Varies widely by scope.",
+  mist:["Hacking walls without checking HDB rules","Paying large deposits upfront to contractors","No budget buffer for surprises"]}
+];
+
+const FAQ=[
+ ["What is a BTO?","Build-To-Order: new HDB flats that are only built after enough buyers sign up. You apply during a sales launch, get balloted, book a unit, and wait several years for construction."],
+ ["What is the HFE letter?","The HDB Flat Eligibility letter tells you, in one place, whether you can buy an HDB flat, whether you can take an HDB housing loan (and how much), and which CPF housing grants you qualify for. You need a valid one before applying for a BTO."],
+ ["How long is the HFE letter valid?","9 months from the date of issue (extended from 6 months in November 2023). It cannot be extended; if it expires you reapply."],
+ ["How long does HFE processing take?","HDB says up to a month after it receives the complete application and all documents. It can be faster, but don't rely on that."],
+ ["What is the income ceiling for a BTO?","Following National Day Rally 2026, reported as $16,000/month for families (up from $14,000), effective 24 August 2026. Confirm on HDB's site — your HFE letter is the final word for you."],
+ ["What are Standard, Plus and Prime flats?","Since October 2024, new flats are classified by location. Plus and Prime flats get extra subsidies but come with stricter conditions such as a 10-year Minimum Occupation Period and resale restrictions. Standard flats have a 5-year MOP."],
+ ["What is the MOP?","Minimum Occupation Period: how long you must live in the flat before you can sell it or buy private property. 5 years for Standard, 10 years for Plus and Prime."],
+ ["What is the Fiancé/Fiancée Scheme?","Lets an unmarried couple apply together. You must submit your marriage certificate before key collection (check HDB for the exact deadline)."],
+ ["How many ballot chances do first-timers get?","Reported current rules: first-timer families get 2 chances; FT(PMC) households get 3. Repeat unsuccessful attempts for Standard flats can add more. From Feb 2027, families get an extra chance per Singapore Citizen child aged 18 and below."],
+ ["What is FT(PMC)?","First-Timer (Parents & Married Couples) priority: for first-timer married couples and parents with young children, with conditions. Fiancé/fiancée couples usually join it once married — check if you qualify at application."],
+ ["What is the Enhanced CPF Housing Grant (EHG)?","An income-tiered grant for first-timers. Couples can get up to $120,000; the amount drops as household income rises. Your HFE letter shows your amount."],
+ ["Can we use CPF for the downpayment?","Yes, CPF Ordinary Account savings can be used for the downpayment, stamp duty, legal fees and monthly instalments, subject to CPF rules."],
+ ["What happens if our income changes after the HFE letter?","The letter reflects your situation when assessed. If your circumstances change materially (job loss, marriage plans change, buying property), tell HDB and you may need a new assessment. HDB may also recheck at key stages like flat booking."],
+ ["HDB loan or bank loan?","HDB loan: fixed concessionary rate pegged to CPF OA rate, 75% LTV, no cash downpayment required. Bank loan: rates can be lower or higher and float. If you take a bank loan you can't switch back to an HDB loan later."],
+ ["What if we decline our flat at booking?","Declining or not booking may be counted as non-selection and can affect your first-timer status or priority in future exercises. Check HDB's latest rules before deciding."]
+];
+const GLOSSARY=[["AFL","Agreement for Lease — the purchase contract signed after booking."],["BTO","Build-To-Order new flat."],["CCA","Community Care Apartment — senior-friendly flats with care services."],["EHG","Enhanced CPF Housing Grant."],["HFE","HDB Flat Eligibility letter."],["LTV","Loan-to-Value limit; 75% for HDB loans."],["MOP","Minimum Occupation Period."],["MSR","Mortgage Servicing Ratio: instalment cap of 30% of gross monthly income for HDB/bank loans on HDB flats."],["OA","CPF Ordinary Account."],["SBF","Sale of Balance Flats — leftover/repurchased flats sold in a separate exercise."],["SDS","Staggered Downpayment Scheme."],["Queue number","Your order to select a flat after the ballot."]];
+
+/* ============================== STATE ============================== */
+let S={checks:{},notes:{},fields:{},ratings:{}};
+let db=null, ref=null, docExists=false, pending={}, writeTimer=null, writing=false, mode="connecting";
+const LSK="honeybee-bto-v1";
+try{const raw=localStorage.getItem(LSK); if(raw){const o=JSON.parse(raw); S={...S,...o};}}catch(e){}
+S.checks["ms.elig"]=true; S.checks["hfe1.0"]=S.checks["hfe1.0"]??true; S.checks["hfe1.1"]=S.checks["hfe1.1"]??true;
+
+function deepMerge(a,b){for(const k in b){if(b[k]&&typeof b[k]==="object"&&!Array.isArray(b[k])){a[k]=deepMerge(a[k]&&typeof a[k]==="object"?a[k]:{},b[k])}else a[k]=b[k]}return a}
+function put(kind,key,val){
+  S[kind]=S[kind]||{}; S[kind][key]=val;
+  pending[kind]=pending[kind]||{}; pending[kind][key]=val;
+  try{localStorage.setItem(LSK,JSON.stringify(S))}catch(e){}
+  clearTimeout(writeTimer); writeTimer=setTimeout(flush,700);
+  updateProgress();
+}
+async function flush(){
+  if(!ref||writing||!Object.keys(pending).length) return;
+  const patch=pending; pending={}; writing=true;
+  try{
+    if(docExists) await ref.update(patch); else {await ref.set(deepMerge(JSON.parse(JSON.stringify(S)),{})); docExists=true;}
+    setSync("live","Saved · shared between you both");
+  }catch(e){ pending=deepMerge(patch,pending); setSync("local","Couldn't save to shared store; kept on this device"); }
+  writing=false; if(Object.keys(pending).length) flush();
+}
+function setSync(m,t){mode=m;const d=document.getElementById("syncDot");d.className="dot "+(m==="live"?"live":m==="local"?"local":"");document.getElementById("syncTxt").textContent=t}
+
+async function initDb(){
+  if(!window.claude||!window.claude.use){setSync("local","Saved on this device only");return}
+  try{db=await window.claude.use("db")}catch(e){db=null}
+  if(!db){setSync("local","Saved on this device only");return}
+  ref=db.doc("journey/main");
+  let first=true; const timer=setTimeout(()=>{if(first)setSync("local","Shared store not reachable yet")},10000);
+  ref.onSnapshot(snap=>{
+    if(!snap.metadata.fromCache){clearTimeout(timer)}
+    docExists=snap.exists;
+    if(snap.exists){
+      const remote=JSON.parse(JSON.stringify(snap.data()));
+      S=deepMerge({checks:{},notes:{},fields:{},ratings:{}},remote); deepMerge(S,JSON.parse(JSON.stringify(pending)));
+      S.checks["ms.elig"]=true;
+      try{localStorage.setItem(LSK,JSON.stringify(S))}catch(e){}
+      const a=document.activeElement; if(!(a&&(a.tagName==="INPUT"&&a.type!=="checkbox"||a.tagName==="TEXTAREA"||a.tagName==="SELECT"))) render(false); else updateProgress();
+    } else if(first && !snap.metadata.fromCache){ pending=deepMerge(JSON.parse(JSON.stringify(S)),pending); flush(); }
+    if(!snap.metadata.fromCache) setSync("live","Synced · shared between you both");
+    first=false;
+  },err=>{clearTimeout(timer);setSync("local","Shared store unavailable; saving on this device")});
+}
+
+/* ============================== HELPERS ============================== */
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const F=(k,d="")=>S.fields[k]??d;
+const money=n=>isFinite(n)?"$"+Math.round(n).toLocaleString("en-SG"):"—";
+function allChecklistIds(){const ids=[];for(const k in CL)CL[k].forEach((_,i)=>ids.push(k+"."+i));DOCS.forEach((g,gi)=>g.items.forEach((_,i)=>ids.push("doc."+gi+"."+i)));MILESTONES.forEach(m=>ids.push(m.id));return ids}
+function clCount(k){const n=CL[k].length;let d=0;for(let i=0;i<n;i++)if(S.checks[k+"."+i])d++;return [d,n]}
+function checklist(k,title){
+  const [d,n]=clCount(k);
+  return `<div class="cl"><div class="cl-head"><h3>${title||"Checklist"}</h3><span class="pill ${d===n?"p-ok":"p-info"}">${d}/${n} done</span></div>
+  <div class="bar" style="height:8px;margin-bottom:8px"><i style="width:${n?d/n*100:0}%"></i></div>
+  ${CL[k].map((it,i)=>chk(k+"."+i,it[0],it[1])).join("")}</div>`;
+}
+function chk(id,t,sub,dis){const on=!!S.checks[id];return `<label class="chk ${on?"done":""}"><input type="checkbox" data-check="${id}" ${on?"checked":""} ${dis?"disabled":""}><span>${t}${sub?`<small>${sub}</small>`:""}</span></label>`}
+function field(k,label,type="text",opts={}){
+  const v=F(k,opts.def??"");
+  if(type==="textarea")return `<label class="f">${label}<textarea data-field="${k}" id="f-${k}" placeholder="${esc(opts.ph||"")}">${esc(v)}</textarea></label>`;
+  if(type==="select")return `<label class="f">${label}<select data-field="${k}" id="f-${k}">${opts.options.map(o=>`<option ${o===v?"selected":""}>${o}</option>`).join("")}</select>${opts.h?`<span class="h">${opts.h}</span>`:""}</label>`;
+  return `<label class="f">${label}<input type="${type}" data-field="${k}" id="f-${k}" value="${esc(v)}" placeholder="${esc(opts.ph||"")}" ${type==="number"?'inputmode="decimal" min="0"':""}>${opts.h?`<span class="h">${opts.h}</span>`:""}</label>`;
+}
+const ic=(n,c="")=>`<i data-lucide="${n}" class="${c}"></i>`;
+const note=(type,html,i)=>`<div class="note ${type}">${ic(i||(type==="warn"?"triangle-alert":type==="ok"?"circle-check":"info"))}<div>${html}</div></div>`;
+function head(i,eyebrow,title,lead){return `<div class="page-head"><div class="ico h">${ic(i)}</div><div class="stack" style="gap:6px;flex:1;min-width:0"><div class="eyebrow">${eyebrow}</div><h1>${title}</h1>${lead?`<p class="lead muted">${lead}</p>`:""}</div></div>`}
+
+function progress(){
+  const done=MILESTONES.filter(m=>S.checks[m.id]).length;
+  const ids=allChecklistIds(); const td=ids.filter(i=>S.checks[i]).length;
+  const cur=MILESTONES.find(m=>!S.checks[m.id]);
+  return {pct:Math.round(done/MILESTONES.length*100),done,total:MILESTONES.length,td,tt:ids.length,cur};
+}
+function updateProgress(){
+  const p=progress();
+  for(const id of ["sideBar","topBar"])document.getElementById(id).style.width=p.pct+"%";
+  document.getElementById("sidePct").textContent=p.pct+"%";document.getElementById("topPct").textContent=p.pct+"%";
+  document.getElementById("sideStage").textContent=p.cur?"Next: "+p.cur.t:"All milestones done — good luck in the ballot!";
+}
+
+/* ============================== ILLUSTRATION ============================== */
+const HOUSE=`<svg class="house" viewBox="0 0 340 260" role="img" aria-label="A little blue house with two bees">
+<ellipse cx="170" cy="236" rx="150" ry="16" fill="var(--blue)" opacity=".45"/>
+<g fill="#9BCF8E"><circle cx="46" cy="214" r="18"/><circle cx="66" cy="222" r="13"/><circle cx="292" cy="214" r="17"/><circle cx="274" cy="224" r="12"/></g>
+<rect x="88" y="118" width="164" height="112" rx="12" fill="#B9DDF5" stroke="#47799F" stroke-width="3"/>
+<path d="M74 126 L170 52 L266 126 Z" fill="#F9D878" stroke="#E0B84A" stroke-width="3" stroke-linejoin="round"/>
+<path d="M120 102 l12-9 12 9 v14 l-12 7 -12-7z M148 81 l12-9 12 9 v14 l-12 7 -12-7z M176 102 l12-9 12 9 v14 l-12 7 -12-7z" fill="#FFF3C4" stroke="#E0B84A" stroke-width="2"/>
+<rect x="150" y="166" width="40" height="64" rx="18" fill="#FFF9EE" stroke="#47799F" stroke-width="3"/><circle cx="180" cy="200" r="3.5" fill="#47799F"/>
+<rect x="104" y="146" width="34" height="30" rx="8" fill="#FFFFFF" stroke="#47799F" stroke-width="3"/><path d="M121 146v30M104 161h34" stroke="#47799F" stroke-width="2"/>
+<rect x="202" y="146" width="34" height="30" rx="8" fill="#FFFFFF" stroke="#47799F" stroke-width="3"/><path d="M219 146v30M202 161h34" stroke="#47799F" stroke-width="2"/>
+<g fill="#F7A9B8"><circle cx="104" cy="226" r="6"/><circle cx="120" cy="228" r="5"/><circle cx="222" cy="227" r="6"/><circle cx="238" cy="226" r="5"/></g>
+<path d="M96 120c-40-30-30-70 0-84" fill="none" stroke="#47799F" stroke-width="2" stroke-dasharray="4 6" opacity=".6"/>
+<g class="bee-float"><g transform="translate(70 40)">
+<ellipse cx="-6" cy="-12" rx="11" ry="8" fill="#fff" stroke="#47799F" stroke-width="2" opacity=".95"/><ellipse cx="8" cy="-13" rx="11" ry="8" fill="#fff" stroke="#47799F" stroke-width="2" opacity=".95"/>
+<ellipse cx="0" cy="0" rx="18" ry="13" fill="#F9D878" stroke="#354B5E" stroke-width="2.5"/><path d="M-5-12v24M5-12v24" stroke="#354B5E" stroke-width="4"/>
+<circle cx="13" cy="-3" r="2.2" fill="#354B5E"/><path d="M-18 0l-7 0" stroke="#354B5E" stroke-width="2.5"/>
+<rect x="2" y="8" width="16" height="12" rx="3" fill="#F7A9B8" stroke="#354B5E" stroke-width="1.8"/></g></g>
+<g class="bee-float b2"><g transform="translate(278 62)">
+<ellipse cx="-8" cy="-12" rx="11" ry="8" fill="#fff" stroke="#47799F" stroke-width="2" opacity=".95"/><ellipse cx="6" cy="-13" rx="11" ry="8" fill="#fff" stroke="#47799F" stroke-width="2" opacity=".95"/>
+<ellipse cx="0" cy="0" rx="18" ry="13" fill="#F9D878" stroke="#354B5E" stroke-width="2.5"/><path d="M-5-12v24M5-12v24" stroke="#354B5E" stroke-width="4"/>
+<circle cx="-13" cy="-3" r="2.2" fill="#354B5E"/><path d="M18 0l7 0" stroke="#354B5E" stroke-width="2.5"/>
+<path d="M-20 14 q-4 -10 6 -10 q10 0 6 10z" fill="#B9DDF5" stroke="#354B5E" stroke-width="1.8"/></g></g>
+<path d="M150 40 q6-8 12 0 q6-8 12 0 q0 10-12 16 q-12-6-12-16z" fill="#F7A9B8" opacity=".9"/>
+</svg>`;
+
+/* ============================== PAGES ============================== */
+const P={};
+P.home=()=>{
+  const p=progress();
+  const hs=F("hfeStatus","Not started"), ls=F("hfeLetter","Pending");
+  const pill=s=>s==="Completed"||s==="Received"||s==="Submitted"?"p-ok":s==="In progress"?"p-warn":s==="Not started"||s==="Pending"?"p-info":"p-info";
+  const prepPct=Math.round(clCount("s1")[0]/clCount("s1")[1]*100);
+  const nextMs=MILESTONES.filter(m=>!S.checks[m.id]).slice(0,7);
+  return `
+  <section class="hero fade-in">
+    <div class="stack" style="gap:14px">
+      <div class="eyebrow">Our little command centre</div>
+      <h1>Hello, Honeybee! 🐝</h1>
+      <p class="lead"><b>Our little home journey starts here.</b> We're preparing to apply for a Tampines BTO in HDB's <b>February 2027</b> sales launch, which HDB has confirmed will include Tampines alongside Bishan, Tengah and Toa Payoh. Everything we tick here is shared between the two of us.</p>
+      <div class="bar" style="height:16px"><i style="width:${p.pct}%"></i></div>
+      <div class="row small"><b>${p.pct}% of milestones</b><span class="muted">· ${p.td} of ${p.tt} tasks done · ${p.tt-p.td} to go</span></div>
+      <div class="row"><span class="pill p-honey">${ic("sparkles")} Current stage</span><b>${p.cur?esc(p.cur.t):"Ready for the ballot!"}</b></div>
+    </div>
+    ${HOUSE}
+  </section>
+
+  ${note("warn",`<b>Time-sensitive:</b> HDB says HFE processing takes <b>up to a month</b> once every document is in. For a February 2027 launch we should submit our HFE application <b>by mid-December 2026</b>. The letter then stays valid for 9 months, covering the Feb and mid-2027 launches.`,"alarm-clock")}
+
+  <div class="grid g3">
+    <div class="card status"><div class="top"><b>HFE eligibility check</b><span class="pill p-ok">Completed</span></div><p class="small muted">Step 1 done ${F("eligDate")?"on "+esc(F("eligDate")):""}.</p></div>
+    <div class="card status"><div class="top"><b>HFE application</b><span class="pill ${pill(hs)}">${esc(hs)}</span></div>${field("hfeStatus","","select",{options:["Not started","In progress","Submitted","Completed"],def:"Not started"})}</div>
+    <div class="card status"><div class="top"><b>HFE letter</b><span class="pill ${pill(ls)}">${esc(ls)}</span></div>${field("hfeLetter","","select",{options:["Pending","Received"],def:"Pending"})}</div>
+    <div class="card status"><div class="top"><b>BTO application prep</b><span class="pill ${prepPct===100?"p-ok":"p-warn"}">${prepPct===100?"Ready":"In progress"}</span></div><div class="bar" style="height:8px"><i style="width:${prepPct}%"></i></div><p class="small muted">${clCount("s1")[0]} of ${clCount("s1")[1]} pre-launch tasks</p></div>
+    <div class="card status"><div class="top"><b>Target launch</b><span class="pill p-honey">Tampines</span></div><p class="money-big">Feb 2027</p><p class="small muted">Exact dates announced by HDB nearer the launch.</p></div>
+    <div class="card status"><div class="top"><b>Milestones</b><span class="pill p-info">${p.done}/${p.total}</span></div><p class="money-big">${p.total-p.done} left</p><p class="small muted">Until we've applied.</p></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card"><div class="cl-head"><h2>Upcoming milestones</h2><a href="#timeline" class="small">View all</a></div>
+      <div class="stack" style="gap:2px;margin-top:6px">${nextMs.length?nextMs.map(m=>chk(m.id,m.t,m.date)).join(""):`<p class="muted">Every milestone done. Fingers crossed! 🍀</p>`}</div></div>
+    <div class="card"><h2>Quick actions</h2><div class="grid g2" style="margin-top:14px;gap:12px">
+      <a class="btn primary" href="#hfe">${ic("file-check-2")}Continue HFE</a>
+      <a class="btn" href="#bto">${ic("route")}BTO guide</a>
+      <a class="btn honey" href="#finance">${ic("piggy-bank")}Financial planner</a>
+      <a class="btn" href="#documents">${ic("list-checks")}Outstanding tasks</a>
+      <a class="btn" href="#tampines">${ic("map-pin")}Tampines research</a>
+      <a class="btn" href="#knowledge">${ic("circle-help")}Ask a question</a>
+    </div>
+    <div class="card cream" style="margin-top:16px;padding:16px"><div class="eyebrow">How it fits together</div>
+    <p class="small" style="margin-top:6px"><b>HFE letter</b> → tells us what we can buy and how much help we get. <b>BTO application</b> → uses that letter to join a specific launch's ballot. Two separate steps, in that order.</p></div></div>
+  </div>`;
+};
+
+P.hfe=()=>{
+  const tab=F("_hfeTab","1");
+  const t1=`
+   <div class="card stack">
+     <div class="row" style="justify-content:space-between"><h2>Step 1 · Check your eligibility</h2><span class="pill p-ok">${ic("check")} Completed</span></div>
+     <div class="bar"><i style="width:100%"></i></div>
+     <p>The first part of the HFE application on the HDB Flat Portal is a <b>preliminary check</b>. You answer questions about yourselves, and Myinfo fills in what the government already knows. It gives indicative results only — the real assessment happens in Step 2, which must follow <b>within 30 calendar days</b>.</p>
+     <div class="grid g2">
+      <div class="fact"><h4>${ic("flag")}Citizenship</h4><p class="small">At least one applicant must be a Singapore Citizen. The other can be a Citizen or Permanent Resident. Other combinations have restrictions or different rules.</p></div>
+      <div class="fact"><h4>${ic("users")}Family nucleus</h4><p class="small">You must form a family nucleus, e.g. under the <b>Fiancé/Fiancée Scheme</b> (marry before key collection) or as a married couple under the <b>Public Scheme</b>.</p></div>
+      <div class="fact"><h4>${ic("cake")}Age</h4><p class="small">Applicants must be at least 21 years old for family schemes (singles schemes start at 35).</p></div>
+      <div class="fact"><h4>${ic("banknote")}Income</h4><p class="small">Average gross monthly household income must be within the ceiling. Following NDR 2026, reported as <b>$16,000</b> for families (from 24 Aug 2026). Your HFE result is the final answer.</p></div>
+      <div class="fact"><h4>${ic("building-2")}Property ownership</h4><p class="small">Generally no private property owned in Singapore or overseas, and none disposed of in the last 30 months, when applying for a new flat.</p></div>
+      <div class="fact"><h4>${ic("star")}First-timer status</h4><p class="small">First-timers have never bought a new HDB flat, DBSS or EC, or received a CPF housing grant. First-timers get more ballot chances and higher quotas.</p></div>
+     </div>
+     ${note("info","Other conditions can apply (e.g. Plus/Prime flat conditions, previous flat ownership, or non-selection history). Your HFE letter states the result for your household.")}
+   </div>
+   <div class="grid g2">
+     <div class="card stack"><h3>Our record</h3>${field("eligDate","Date we completed the eligibility check","date")}${field("eligNotes","Notes","textarea",{ph:"E.g. scheme chosen, flat types shown, anything HDB flagged"})}</div>
+     <div class="card">${checklist("hfe1","Step 1 checklist")}</div>
+   </div>`;
+  const t2=`
+   <div class="card stack">
+     <div class="row" style="justify-content:space-between"><h2>Step 2 · Apply for your HFE letter</h2><span class="pill ${F("hfeStatus")==="Submitted"||F("hfeStatus")==="Completed"?"p-ok":"p-warn"}">${esc(F("hfeStatus","Not started"))}</span></div>
+     <p>This is the actual application. HDB checks our income, CPF, property history and household details, then issues the HFE letter.</p>
+     <ol class="steps">
+       <li><b>Go to the HDB Flat Portal</b> (${L("portal")}) and choose the HFE letter application.</li>
+       <li><b>Log in with Singpass.</b> The main applicant starts; Myinfo pre-fills NRIC details, address, CPF data and some income data.</li>
+       <li><b>Add the co-applicant.</b> Both of us take part: the co-applicant logs in with their own Singpass to give consent and complete their declarations.</li>
+       <li><b>Declare employment and income</b> for each person: employer, job status, monthly gross income. HDB assesses the <b>average gross monthly income over the 12 months</b> before the application.</li>
+       <li><b>Confirm CPF details</b> (pulled from CPF Board) so HDB can work out loan and grant eligibility.</li>
+       <li><b>Declare property ownership</b> — any HDB, private, or overseas property owned now or disposed of recently, for every household member.</li>
+       <li><b>Upload supporting documents</b> if asked (payslips, employment letter, NOA, etc.).</li>
+       <li><b>Submit</b> and note the reference number. No fee is mentioned by HDB for this application.</li>
+       <li><b>Monitor status</b> on the Flat Portal. HDB may ask for more documents — respond quickly, as the clock only runs on a complete application.</li>
+     </ol>
+     <div class="tbl"><table><thead><tr><th>Our employment situation</th><th>How the income assessment may work</th></tr></thead><tbody>
+      <tr><td>Salaried, same job for 12+ months</td><td>Straightforward: 12-month average from CPF contributions / payslips.</td></tr>
+      <tr><td>Changed jobs recently</td><td>Income across both jobs is considered; provide an employment letter for the new job.</td></tr>
+      <tr><td>Bonus / commission / variable pay</td><td>Counted in the 12-month average. A big bonus month can lift the average.</td></tr>
+      <tr><td>Self-employed / freelancer</td><td>Usually assessed with IRAS Notice of Assessment and CPF MediSave contributions.</td></tr>
+      <tr><td>Unemployed or full-time student / NS</td><td>Declared as such; may affect loan amount. Some support schemes (e.g. deferred income assessment) may apply — check HDB.</td></tr>
+     </tbody></table></div>
+     <div class="grid g2">
+      <div class="fact bad"><h4>${ic("circle-x")}Common mistakes</h4><ul class="clean small"><li>Missing the 30-day window between Step 1 and Step 2</li><li>Co-applicant never completing their part</li><li>Under- or over-declaring income</li><li>Forgetting overseas or inherited property</li><li>Ignoring HDB's request for more documents</li><li>Applying too close to the launch</li></ul></div>
+      <div class="fact"><h4>${ic("clock")}Processing time</h4><p class="small">HDB says <b>up to a month</b> after it has the complete application and all documents (${L("askhfe")}). Plan for the full month.</p></div>
+     </div>
+   </div>
+   <div class="grid g2"><div class="card">${checklist("hfe2","Step 2 checklist")}</div>
+   <div class="card stack"><h3>Our record</h3>${field("hfeStatus","Application status","select",{options:["Not started","In progress","Submitted","Completed"],def:"Not started"})}${field("hfeSubmitDate","Date submitted","date")}${field("hfeRef","Reference number","text",{ph:"From the Flat Portal"})}${field("hfeNotes","Notes","textarea",{ph:"Documents HDB asked for, questions to ask…"})}</div></div>`;
+  const t3=`
+   <div class="card stack">
+     <div class="row" style="justify-content:space-between"><h2>Step 3 · Receive your HFE letter</h2><span class="pill ${F("hfeLetter")==="Received"?"p-ok":"p-info"}">${esc(F("hfeLetter","Pending"))}</span></div>
+     <p>The HFE letter appears on the HDB Flat Portal once processed. It tells us three separate things — they are often confused:</p>
+     <div class="tbl"><table><thead><tr><th>What it tells us</th><th>Meaning</th><th>Why it matters</th></tr></thead><tbody>
+      <tr><td><b>Eligibility to buy</b></td><td>Which HDB flat types we can buy (e.g. 2-room Flexi to 5-room) under which scheme.</td><td>We can only apply for BTO flat types shown here.</td></tr>
+      <tr><td><b>HDB housing loan</b></td><td>Whether we can take an HDB loan and the maximum amount.</td><td>Sets how much we can borrow at HDB's concessionary rate (75% LTV cap).</td></tr>
+      <tr><td><b>CPF housing grants</b></td><td>Which grants and how much, e.g. Enhanced CPF Housing Grant (up to $120,000 for eligible first-timer couples).</td><td>Grants reduce the price we effectively pay.</td></tr>
+     </tbody></table></div>
+     <div class="grid g2">
+      <div class="fact"><h4>${ic("calendar-clock")}Validity</h4><p class="small"><b>9 months from date of issue.</b> It cannot be extended; reapply if it expires. It must be valid when we submit the BTO application.</p></div>
+      <div class="fact"><h4>${ic("refresh-cw")}If things change</h4><p class="small">A new job, pay cut, change in marriage plans, or property purchase can change eligibility. Tell HDB and expect a reassessment; HDB may also recheck at flat booking.</p></div>
+     </div>
+   </div>
+   <div class="card cream stack"><h3>Example: how the HFE letter shapes our budget</h3>
+     <p class="small muted">Illustrative numbers only, not our real figures. Replace them in the Financial Planner.</p>
+     <div class="grid g2"><div>
+      <div class="kv"><span>Max HDB loan on letter</span><b>$400,000</b></div>
+      <div class="kv"><span>EHG on letter</span><b>$30,000</b></div>
+      <div class="kv"><span>Combined CPF OA</span><b>$60,000</b></div>
+      <div class="kv"><span>Cash set aside</span><b>$20,000</b></div></div>
+      <div><div class="kv"><span>Rough max flat price</span><b>≈ $510,000</b></div>
+      <p class="small">Loan + grant + CPF + cash, minus ~$10k kept for stamp duty, legal fees and buffer. The loan is also capped at 75% of the price, so the downpayment side must stretch to 25% (less grant).</p></div></div>
+   </div>
+   <div class="grid g2"><div class="card">${checklist("hfe3","Step 3 checklist")}</div>
+   <div class="card stack"><h3>Our HFE letter details</h3><div class="grid g2">${field("hfeIssue","Issue date","date")}${field("hfeExpiry","Expiry date","date",{h:"9 months after issue"})}${field("hfeLoan","Max HDB loan ($)","number")}${field("hfeEhg","EHG amount ($)","number")}</div>${field("hfeTypes","Eligible flat types","text",{ph:"e.g. 2-room Flexi to 5-room"})}</div></div>`;
+  return `${head("file-check-2","Step by step","HFE Application","The HDB Flat Eligibility (HFE) letter is a pre-check we must hold before any BTO application. HFE and BTO are separate processes: HFE confirms <b>what</b> we can buy and <b>how much help</b> we get; the BTO application is <b>joining a specific launch</b>.")}
+  <div class="grid g3">
+   <div class="card soft"><div class="eyebrow">HFE letter</div><p class="small" style="margin-top:6px">Applied anytime. Checks eligibility, loan and grants. Valid 9 months. No ballot.</p></div>
+   <div class="card soft"><div class="eyebrow">BTO application</div><p class="small" style="margin-top:6px">Only during a sales launch. Needs valid HFE. $10 fee. Computer ballot.</p></div>
+   <div class="card soft"><div class="eyebrow">Order</div><p class="small" style="margin-top:6px">HFE first → then BTO. No valid HFE letter, no BTO application.</p></div>
+  </div>
+  <div class="tabs" role="tablist">${[["1","circle-check","1 · Eligibility"],["2","file-pen","2 · Apply"],["3","mail-open","3 · Letter"]].map(([v,i,t])=>`<button role="tab" data-tab="_hfeTab" data-val="${v}" class="${tab===v?"on":""}" aria-selected="${tab===v}">${ic(i)}${t}</button>`).join("")}</div>
+  <div class="stack fade-in" style="gap:22px">${tab==="1"?t1:tab==="2"?t2:t3}</div>
+  <p class="src">Sources: HDB Flat Portal; ask.gov.sg (HFE processing up to a month); HDB (9-month validity since 3 Nov 2023); NDR 2026 reports on income ceiling. Official links: ${L("portal")} · ${L("hdb")}</p>`;
+};
+
+P.bto=()=>`
+  ${head("route","8 stages","BTO Application Guide","From before the launch to moving in. Open a stage to see what it means, what to do, documents, deadlines, costs and common mistakes. Each has its own checklist.")}
+  <div class="tl">${STAGES.map((s,i)=>{const [d,n]=clCount(s.k);const done=d===n;const now=!done&&STAGES.slice(0,i).every(x=>clCount(x.k)[0]===clCount(x.k)[1]);
+   return `<div class="tl-item ${done?"done":""} ${now?"now":""}"><div class="tl-dot">${done?"✓":i+1}</div>
+   <details class="acc" ${now&&i<3?"open":""}><summary><span class="ico">${ic(s.i)}</span><span style="min-width:0"><span class="eyebrow" style="display:block">Stage ${i+1} · ${s.when}</span>${s.t}</span><span class="pill ${done?"p-ok":d?"p-warn":"p-info"}" style="margin-left:auto">${d}/${n}</span>${ic("chevron-down","chev")}</summary>
+   <div class="body"><p>${s.mean}</p>
+    <div class="facts">
+     <div class="fact" style="grid-column:1/-1"><h4>${ic("list-todo")}What we need to do</h4><ul class="clean small">${s.todo.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+     <div class="fact"><h4>${ic("folder")}Documents</h4><p class="small">${s.docs}</p></div>
+     <div class="fact"><h4>${ic("alarm-clock")}Deadlines</h4><p class="small">${s.dead}</p></div>
+     <div class="fact money"><h4>${ic("coins")}Potential costs</h4><p class="small">${s.cost}</p></div>
+     <div class="fact bad"><h4>${ic("circle-x")}Common mistakes</h4><ul class="clean small">${s.mist.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+    </div>
+    ${s.k==="s3"?`<div class="card cream"><h4>Sample walkthrough: what we'll see</h4><ol class="steps small" style="margin-top:8px"><li>Flat Portal home → <b>Buying a flat</b> → current sales launch.</li><li>Project list (Tampines projects tagged Standard/Plus/Prime) → open project → flat types with price ranges.</li><li><b>Apply</b> → Singpass login → household details carried over from HFE.</li><li>Choose flat type → declarations → co-applicant prompted to log in and confirm.</li><li>Payment page for the $10 fee → confirmation screen with application number.</li><li>Application status shows under My Flat Dashboard until the ballot.</li></ol></div>`:""}
+    ${s.k==="s4"?`<div class="tbl"><table><thead><tr><th>Ballot outcome</th><th>What it means</th></tr></thead><tbody><tr><td>Queue number within supply</td><td>Good chance to book, but by the time our turn comes some units will be taken.</td></tr><tr><td>Queue number beyond supply</td><td>We are on standby; we may get invited if others drop out.</td></tr><tr><td>Unsuccessful</td><td>No flat this round. First-timers may get an extra ballot chance in future Standard-flat applications.</td></tr></tbody></table></div>
+    ${note("info","<b>Ballot chances (reported current rules):</b> first-timer families 2 chances; FT(PMC) households 3. After 2+ unsuccessful Standard-flat attempts, +1 chance each time (caps: 4 for first-timers, 5 for FT(PMC)). From Feb 2027, +1 chance per Singapore Citizen child aged 18 and below. Priority affects shortlisting, not position in the final queue. Higher application rates = lower odds.")}`:""}
+    ${checklist(s.k,"Stage "+(i+1)+" checklist")}</div></details></div>`}).join("")}</div>
+  <p class="src">Sources: ${L("mynicehome")} · ${L("mndguide")} · ${L("afl")}. Ballot rules from 2026 reports; verify on the Flat Portal during the launch.</p>`;
+
+P.tampines=()=>{
+  const sites=[
+   {id:"simei",n:"Simei Road / Upper Changi Road",u:"Reported ~460–540 units",types:"2-room Flexi to 5-room (reported)",mrt:"Near Upper Changi MRT (Downtown Line); Expo interchange (EWL/DTL) nearby",notes:"Close to Changi Business Park, Expo, SUTD and Singapore Polytechnic area... check actual walking routes."},
+   {id:"st11",n:"Tampines Street 11",u:"Reported ~330 units incl. CCAs",types:"Community Care Apartments + 4-room (reported)",mrt:"Mature Tampines town centre area; check walk to Tampines MRT (EWL/DTL)",notes:"Smaller site. Check how many 4-room units vs CCAs."}
+  ];
+  const crit=[["transport","Transport"],["amen","Amenities"],["price","Price"],["view","Layout/views"],["work","Commute to our jobs"]];
+  return `${head("map-pin","Our target","Tampines 2027","Tampines is one of the four towns in HDB's February 2027 BTO exercise. Here's what's confirmed, what's only reported, and how we'll judge each site.")}
+  <div class="grid g4">
+   <div class="card stat"><span class="k">Launch</span><span class="v">Feb 2027</span><span class="small muted">Exact dates TBA</span></div>
+   <div class="card stat"><span class="k">Whole exercise</span><span class="v">~4,300</span><span class="small muted">BTO flats, 4 towns</span></div>
+   <div class="card stat"><span class="k">Also</span><span class="v">~5,000</span><span class="small muted">SBF balance flats</span></div>
+   <div class="card stat"><span class="k">Tampines sites</span><span class="v">2</span><span class="small muted">Reported</span></div>
+  </div>
+  <div class="card stack"><h2>What we know</h2>
+   <div class="tbl"><table><thead><tr><th>Item</th><th>Status</th><th>Detail</th></tr></thead><tbody>
+    <tr><td>Feb 2027 includes Tampines</td><td><span class="pill p-ok">Official</span></td><td>HDB release of 4 Nov 2026: ~4,300 flats in Bishan, Tampines, Tengah and Toa Payoh, plus ~5,000 SBF flats.</td></tr>
+    <tr><td>Site locations</td><td><span class="pill p-warn">Reported</span></td><td>Simei Road / Upper Changi Road, and Tampines Street 11 (media reports).</td></tr>
+    <tr><td>Project names, prices, classification</td><td><span class="pill p-info">TBA</span></td><td>Published on launch day in the HDB brochure.</td></tr>
+    <tr><td>Later 2027 launches</td><td><span class="pill p-info">Expected</span></td><td>HDB usually holds three BTO exercises a year; mid-2027 and Oct 2027 towns not yet announced.</td></tr>
+    <tr><td>Past Tampines launch</td><td><span class="pill p-ok">Official</span></td><td>The Feb 2026 exercise included a Tampines project — its brochure and application rates are a useful benchmark.</td></tr>
+   </tbody></table></div>
+   ${note("info","Tampines is a mature town with Tampines Hub, Our Tampines Hub, Tampines Mall/Century Square/Tampines 1, IKEA, Changi Airport and Changi Business Park nearby. Popular towns often see high application rates, so having a backup flat type or a backup launch in mind is wise.")}
+  </div>
+  <div class="grid g2">${sites.map(s=>`<div class="card stack"><div class="row" style="justify-content:space-between"><h3>${s.n}</h3><span class="pill p-warn">Reported</span></div>
+   <div class="kv"><span>Units</span><b>${s.u}</b></div><div class="kv"><span>Flat types</span><b style="white-space:normal;text-align:right">${s.types}</b></div>
+   <p class="small"><b>Transport:</b> ${s.mrt}</p>
+   <div class="stack" style="gap:6px">${crit.map(([c,cl])=>{const v=S.ratings[s.id+"."+c]||0;return `<div class="row" style="justify-content:space-between"><span class="small"><b>${cl}</b></span><span class="stars">${[1,2,3,4,5].map(n=>`<button aria-label="${cl} ${n} stars" data-rate="${s.id}.${c}" data-val="${n}" class="${n<=v?"on":""}">★</button>`).join("")}</span></div>`}).join("")}</div>
+   <div class="kv"><span>Our score</span><b>${(()=>{const vs=crit.map(([c])=>S.ratings[s.id+"."+c]||0).filter(Boolean);return vs.length?(vs.reduce((a,b)=>a+b,0)/vs.length).toFixed(1)+" / 5":"Not rated"})()}</b></div>
+   ${field("site_"+s.id,"Our notes","textarea",{ph:"Site visit impressions, noise, walking time…"})}</div>`).join("")}</div>
+  <div class="card stack"><h2>Is a Tampines project right for us?</h2>
+   <div class="grid g3">
+    <div class="fact"><h4>${ic("train-front")}Connectivity</h4><ul class="clean small"><li>Walk time to MRT (EWL, DTL, future Cross Island Line)</li><li>Commute to both workplaces at peak hour</li><li>Bus interchange access</li></ul></div>
+    <div class="fact"><h4>${ic("store")}Amenities</h4><ul class="clean small"><li>Hawker centre, supermarket, clinic</li><li>Parks & park connectors</li><li>Schools within 1–2 km (for later)</li></ul></div>
+    <div class="fact"><h4>${ic("scale")}Trade-offs</h4><ul class="clean small"><li>Standard vs Plus/Prime conditions (MOP 5 vs 10 yrs)</li><li>Estimated completion date</li><li>Price after grants vs our budget</li></ul></div>
+   </div>
+   ${field("tampinesNotes","Our overall Tampines thoughts","textarea",{ph:"Which site do we prefer and why? Backup plan?"})}
+  </div>
+  <p class="src">Sources: HDB media release (4 Nov 2026) as reported by Yahoo News SG and 99.co; site details from 99.co and Stacked Homes previews. Confirm with the official brochure at launch: ${L("portal")}</p>`;
+};
+
+P.finance=()=>{
+  const n=k=>parseFloat(F(k,""))||0;
+  const price=n("fPrice")||450000, type=F("fType","4-room"), ehg=n("fEhg")||n("hfeEhg"), cpf=n("fCpf"), cash=n("fCash"), income=n("fIncome"), rate=(parseFloat(F("fRate",""))||2.6)/100, yrs=parseFloat(F("fYears",""))||25, sds=F("fSds","No")==="Yes", loanCap=n("hfeLoan");
+  const opt={"2-room Flexi":500,"3-room":1000,"4-room":2000,"5-room":2000}[type]||2000;
+  const ltv=0.75*price; let loan=Math.min(ltv,Math.max(0,price-ehg)); if(loanCap) loan=Math.min(loan,loanCap);
+  const downTotal=Math.max(0,price-ehg-loan);
+  const aflPct=sds?0.05:0.10; const aflDue=Math.max(0,Math.min(downTotal,price*aflPct-0)-opt);
+  const keyDue=Math.max(0,downTotal-opt-aflDue);
+  const bsd=(p=>{let t=0,r=p;const b=[[180000,.01],[180000,.02],[640000,.03],[500000,.04],[1500000,.05],[Infinity,.06]];for(const[a,x]of b){const s=Math.min(r,a);t+=s*x;r-=s;if(r<=0)break}return t})(price);
+  const legal=n("fLegal")||2500;
+  const mr=rate/12, m=yrs*12, inst=loan&&mr?loan*mr/(1-Math.pow(1+mr,-m)):loan/m;
+  const msr=income?inst/income*100:0;
+  const upfront=opt+aflDue+bsd+legal; const have=cpf+cash;
+  return `${head("piggy-bank","Money matters","Financial Planner","Plug in our numbers (from the HFE letter where possible). Everything recalculates instantly and is saved for both of us. These are estimates for planning, not official quotes.")}
+  <div class="grid g2">
+   <div class="card stack"><h3>Our inputs</h3><div class="grid g2">
+    ${field("fPrice","Target flat price ($)","number",{ph:"450000",h:"From the launch brochure"})}
+    ${field("fType","Flat type","select",{options:["2-room Flexi","3-room","4-room","5-room"],def:"4-room"})}
+    ${field("fEhg","Grants on HFE letter ($)","number",{ph:F("hfeEhg")||"e.g. 30000",h:"EHG etc. Up to $120k for couples"})}
+    ${field("hfeLoan","Max HDB loan on HFE ($)","number",{ph:"Optional cap"})}
+    ${field("fCpf","Combined CPF OA ($)","number",{ph:"60000"})}
+    ${field("fCash","Combined cash savings for house ($)","number",{ph:"20000"})}
+    ${field("fIncome","Combined gross monthly income ($)","number",{ph:"8000"})}
+    ${field("fRate","HDB loan rate (% p.a.)","number",{ph:"2.6",h:"HDB concessionary rate, 0.1% above CPF OA rate"})}
+    ${field("fYears","Loan tenure (years)","number",{ph:"25",h:"HDB max 25 years"})}
+    ${field("fSds","Staggered Downpayment Scheme?","select",{options:["No","Yes"],def:"No",h:"For eligible first-timer couples"})}
+    ${field("fLegal","Legal / conveyancing fees ($)","number",{ph:"2500",h:"Estimate; HDB gives actual figure"})}
+   </div></div>
+   <div class="stack" style="gap:18px">
+    <div class="card stack"><h3>Payment schedule (HDB loan)</h3>
+     <div class="kv"><span>Flat price</span><b>${money(price)}</b></div>
+     <div class="kv"><span>Less grants</span><b>− ${money(ehg)}</b></div>
+     <div class="kv"><span>HDB loan (≤75% LTV${loanCap?", HFE cap":""})</span><b>${money(loan)}</b></div>
+     <div class="kv"><span>Downpayment to fund (CPF/cash)</span><b>${money(downTotal)}</b></div>
+     <div class="kv"><span>① Option fee at booking</span><b>${money(opt)}</b></div>
+     <div class="kv"><span>② At AFL (${sds?"5%":"10%"} less option fee)</span><b>${money(aflDue)}</b></div>
+     <div class="kv"><span>③ At key collection (balance)</span><b>${money(keyDue)}</b></div>
+     <div class="kv"><span>Buyer's Stamp Duty (at AFL)</span><b>${money(bsd)}</b></div>
+     <div class="kv"><span>Legal fees (estimate)</span><b>${money(legal)}</b></div>
+    </div>
+    <div class="card cream stack"><div class="grid g2">
+     <div class="stat"><span class="k">Monthly instalment</span><span class="v">${money(inst)}</span><span class="small muted">${yrs} yrs at ${(rate*100).toFixed(2)}%</span></div>
+     <div class="stat"><span class="k">MSR</span><span class="v">${income?msr.toFixed(1)+"%":"—"}</span><span class="pill ${!income?"p-info":msr<=30?"p-ok":"p-bad"}" style="align-self:flex-start">${!income?"Add income":msr<=30?"Within 30% cap":"Above 30% cap"}</span></div>
+     <div class="stat"><span class="k">Due before keys</span><span class="v">${money(upfront)}</span><span class="small muted">Option + AFL + BSD + legal</span></div>
+     <div class="stat"><span class="k">CPF + cash we have</span><span class="v">${money(have)}</span><span class="pill ${have>=upfront?"p-ok":"p-warn"}" style="align-self:flex-start">${have>=upfront?"Covered":"Short by "+money(upfront-have)}</span></div>
+    </div></div>
+   </div>
+  </div>
+  ${note("info","How grants are applied: grants are credited to CPF and first offset the downpayment, which can reduce the loan needed. HDB loan buyers need no cash downpayment — CPF OA can pay. Bank loans differ (5% must be cash). Check the payment table HDB sends with the AFL appointment. "+L("afl"))}
+  <div class="grid g2"><div class="card">${checklist("fin","Money checklist")}</div>
+  <div class="card stack"><h3>Other costs to budget</h3><ul class="clean small"><li>Renovation (wide range — plan a buffer)</li><li>Furniture & appliances</li><li>HDB Fire Insurance (compulsory with HDB loan)</li><li>Home Protection Scheme (mortgage-reducing insurance when using CPF)</li><li>Moving costs</li><li>Service & conservancy charges monthly</li></ul>${field("finNotes","Our money notes","textarea")}</div></div>
+  <p class="src">Option fees, 75% LTV and AFL/key collection split per HDB; BSD tiers per IRAS (${L("iras")}). Not financial advice.</p>`;
+};
+
+P.documents=()=>{
+  let d=0,t=0;DOCS.forEach((g,gi)=>g.items.forEach((_,i)=>{t++;if(S.checks["doc."+gi+"."+i])d++}));
+  return `${head("folder-check","Paperwork","Documents Checklist","Everything we may need from HFE to key collection, grouped by type. Tick when it's ready in our shared folder.")}
+  <div class="card"><div class="cl-head"><h3>Overall</h3><span class="pill ${d===t?"p-ok":"p-info"}">${d}/${t} ready</span></div><div class="bar"><i style="width:${d/t*100}%"></i></div></div>
+  <div class="grid g2">${DOCS.map((g,gi)=>{const gd=g.items.filter((_,i)=>S.checks["doc."+gi+"."+i]).length;return `<div class="card"><div class="cl-head"><div class="row"><span class="ico">${ic(g.i)}</span><h3>${g.g}</h3></div><span class="pill ${gd===g.items.length?"p-ok":"p-info"}">${gd}/${g.items.length}</span></div>${g.items.map((it,i)=>chk("doc."+gi+"."+i,it[0],it[1])).join("")}</div>`}).join("")}</div>
+  <div class="card stack">${field("docFolder","Where we keep our documents","text",{ph:"e.g. Shared Google Drive folder 'BTO'"})}${field("docNotes","Notes","textarea")}</div>`;
+};
+
+P.timeline=()=>{
+  const p=progress();
+  return `${head("calendar-days","Plan","Timeline & Milestones","Our nine milestones to a submitted BTO application, plus the longer road after. Tick each when done; set our own target dates.")}
+  <div class="card"><div class="cl-head"><h3>Road to applying</h3><span class="pill p-honey">${p.pct}%</span></div><div class="bar" style="height:14px"><i style="width:${p.pct}%"></i></div></div>
+  <div class="card"><div class="tl">${MILESTONES.map((m,i)=>{const on=!!S.checks[m.id];const now=p.cur&&p.cur.id===m.id;return `<div class="tl-item ${on?"done":""} ${now?"now":""}"><div class="tl-dot">${on?"✓":i+1}</div>
+    <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px"><div style="flex:1;min-width:220px">${chk(m.id,m.t,m.date,m.fixed)}</div><div style="width:170px">${m.fixed?`<span class="pill p-ok">Completed</span>`:field("date_"+m.id,"","date")}</div></div></div>`}).join("")}</div></div>
+  <div class="card stack"><h2>After we apply (typical sequence)</h2>
+   <div class="tbl"><table><thead><tr><th>Phase</th><th>Typical timing</th></tr></thead><tbody>
+    <tr><td>Application window</td><td>About a week during the Feb 2027 launch</td></tr>
+    <tr><td>Ballot results</td><td>A few weeks after the window closes</td></tr>
+    <tr><td>Flat booking appointment</td><td>In queue order; weeks to months after results</td></tr>
+    <tr><td>Sign Agreement for Lease</td><td>Within ~9 months of booking (HDB)</td></tr>
+    <tr><td>Construction</td><td>Several years; see estimated completion in brochure</td></tr>
+    <tr><td>Key collection → renovation → move in</td><td>After completion</td></tr>
+   </tbody></table></div>
+   <p class="src">${L("mndguide")}</p></div>`;
+};
+
+P.knowledge=()=>{
+  const q=(F("_q","")||"").toLowerCase();
+  const fq=FAQ.filter(f=>!q||(f[0]+f[1]).toLowerCase().includes(q));
+  const gl=GLOSSARY.filter(g=>!q||(g[0]+g[1]).toLowerCase().includes(q));
+  return `${head("circle-help","Learn","BTO Knowledge Centre","Plain-language answers for anyone new to Singapore public housing.")}
+  <div class="search">${ic("search")}<input type="text" id="kq" data-field="_q" value="${esc(F("_q",""))}" placeholder="Search e.g. MOP, grant, ballot" aria-label="Search the knowledge centre"></div>
+  <div id="kres" class="grid g2" style="align-items:start">
+   <div>${fq.map(f=>`<details class="acc"><summary>${ic("message-circle-question")}<span>${f[0]}</span>${ic("chevron-down","chev")}</summary><div class="body"><p class="small">${f[1]}</p></div></details>`).join("")||`<p class="muted">No questions match.</p>`}</div>
+   <div class="card stack"><h3>Glossary</h3>${gl.map(g=>`<div class="kv"><b>${g[0]}</b><span class="small" style="text-align:right">${g[1]}</span></div>`).join("")||`<p class="muted small">No terms match.</p>`}</div>
+  </div>
+  <div class="card soft stack"><h3>Official sources</h3><div class="row small">${Object.keys(LINKS).map(L).join(" · ")}</div></div>
+  <p class="src">Rules change. Where this page says "reported", confirm on HDB's site or your HFE letter before relying on it.</p>`;
+};
+
+/* ============================== ROUTER & EVENTS ============================== */
+function route(){const h=location.hash.slice(1);return P[h]?h:"home"}
+function render(scroll=true){
+  const r=route();
+  document.getElementById("nav").innerHTML=NAV.map(([k,i,t])=>`<a href="#${k}" class="${k===r?"on":""}" ${k===r?'aria-current="page"':""}>${ic(i)}<span>${t}</span></a>`).join("");
+  const y=window.scrollY;
+  document.getElementById("view").innerHTML=P[r]();
+  if(window.lucide) lucide.createIcons();
+  updateProgress();
+  if(scroll) window.scrollTo(0,0); else window.scrollTo(0,y);
+}
+window.addEventListener("hashchange",()=>{closeMenu();render(true)});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.check){put("checks",t.dataset.check,t.checked);render(false)}
+  else if(t.dataset.field&&t.tagName==="SELECT"){put("fields",t.dataset.field,t.value);render(false)}
+  else if(t.dataset.field&&t.type==="date"){put("fields",t.dataset.field,t.value)}
+});
+let inputTimer;
+document.addEventListener("input",e=>{
+  const t=e.target; if(!t.dataset.field||t.tagName==="SELECT"||t.type==="date") return;
+  const k=t.dataset.field;
+  if(k.startsWith("_")){S.fields[k]=t.value;} else put("fields",k,t.value);
+  if(route()==="finance"||k==="_q"){clearTimeout(inputTimer);inputTimer=setTimeout(()=>{const id=t.id,pos=t.selectionStart;render(false);const n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}},k==="_q"?120:450)}
+});
+document.addEventListener("click",e=>{
+  const tb=e.target.closest("[data-tab]"); if(tb){S.fields[tb.dataset.tab]=tb.dataset.val;render(false);return}
+  const rt=e.target.closest("[data-rate]"); if(rt){const k=rt.dataset.rate,v=+rt.dataset.val;put("ratings",k,S.ratings[k]===v?0:v);render(false)}
+});
+const side=document.getElementById("side"),scrim=document.getElementById("scrim"),mb=document.getElementById("menuBtn");
+function closeMenu(){side.classList.remove("open");scrim.hidden=true;mb.setAttribute("aria-expanded","false")}
+mb.addEventListener("click",()=>{side.classList.add("open");scrim.hidden=false;mb.setAttribute("aria-expanded","true")});
+scrim.addEventListener("click",closeMenu);
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMenu()});
+
+render(false);
+setSync("connecting","Connecting…");
+initDb();
+</script>
+
+</body>
+</html>
