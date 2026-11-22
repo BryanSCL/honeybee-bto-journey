@@ -136,7 +136,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue-deep)}
 .road{overflow-x:auto;padding:4px 2px 8px}
 .road-in{display:grid;grid-template-columns:repeat(9,minmax(92px,1fr));gap:0;min-width:840px;position:relative}
 .road-in::before{content:"";position:absolute;left:46px;right:46px;top:30px;height:4px;background:repeating-linear-gradient(90deg,var(--honey-deep) 0 8px,transparent 8px 14px);opacity:.6}
-.ms{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;position:relative;padding:0 4px}
+.ms{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;position:relative;padding:0 4px;border:0;background:none;font:inherit;color:inherit}
+button.ms{cursor:pointer} button.ms:disabled{cursor:default}
+button.ms:not(:disabled):hover .hex{transform:scale(1.08)} .ms .hex{transition:transform .2s}
 .ms .hex{width:54px;height:61px}
 .ms.done .hex{background:var(--honey);color:var(--honey-ink)}
 .ms.now .hex{background:var(--blue-deep);color:#fff;animation:pulse 2.2s ease-in-out infinite}
@@ -429,7 +431,7 @@ async function initDb(){
     if(snap.exists){
       const remote=JSON.parse(JSON.stringify(snap.data()));
       S=deepMerge({checks:{},notes:{},fields:{},ratings:{}},remote); deepMerge(S,JSON.parse(JSON.stringify(pending)));
-      S.checks["ms.elig"]=true;
+      S.checks["ms.elig"]=true; autoMilestones();
       try{localStorage.setItem(LSK,JSON.stringify(S))}catch(e){}
       const a=document.activeElement; if(!(a&&(a.tagName==="INPUT"&&a.type!=="checkbox"||a.tagName==="TEXTAREA"||a.tagName==="SELECT"))) render(false); else updateProgress();
     } else if(first && !snap.metadata.fromCache){ pending=deepMerge(JSON.parse(JSON.stringify(S)),pending); flush(); }
@@ -467,6 +469,18 @@ function progress(){
   const cur=MILESTONES.find(m=>!S.checks[m.id]);
   return {pct:Math.round(done/MILESTONES.length*100),done,total:MILESTONES.length,td,tt:ids.length,cur};
 }
+/* Milestones follow the statuses and checklists that represent them */
+const FIELD_MS={hfeStatus:[v=>["Submitted","Completed"].includes(v),"ms.hfeApply","Submitted","In progress"],hfeLetter:[v=>v==="Received","ms.hfeLetter","Received","Pending"]};
+const CL_MS={hfe3:"ms.grants",fin:"ms.finance",s1:"ms.prep"};
+function linkFromField(k,v){const r=FIELD_MS[k];if(r&&!!S.checks[r[1]]!==r[0](v))put("checks",r[1],r[0](v))}
+function linkFromCheck(id,on){for(const k in FIELD_MS){const r=FIELD_MS[k];if(r[1]===id&&r[0](F(k))!==on)put("fields",k,on?r[2]:r[3])}}
+function autoMilestones(){
+  for(const k in CL_MS){const[d,n]=clCount(k);if(d===n&&!S.checks[CL_MS[k]])put("checks",CL_MS[k],true)}
+  let dd=0,dt=0;DOCS.forEach((g,gi)=>g.items.forEach((_,i)=>{dt++;if(S.checks["doc."+gi+"."+i])dd++}));
+  if(dd===dt&&!S.checks["ms.docs"])put("checks","ms.docs",true);
+  for(const k in FIELD_MS){const r=FIELD_MS[k];if(r[0](F(k))&&!S.checks[r[1]])put("checks",r[1],true)}
+}
+function setCheck(id,on){if(id==="ms.elig")return;put("checks",id,on);linkFromCheck(id,on);autoMilestones()}
 function updateProgress(){
   const p=progress();
   document.getElementById("topBar").style.width=p.pct+"%";
@@ -523,7 +537,8 @@ P.home=()=>{
   </div>
 
   <div class="card"><div class="cl-head"><h2>Our road map</h2><a class="small" href="#timeline">Details →</a></div>
-    <div class="road"><div class="road-in">${MILESTONES.map(m=>{const on=S.checks[m.id];const now=p.cur&&p.cur.id===m.id;return `<div class="ms ${on?"done":""} ${now?"now":""}">${hex(on?"check":m.i)}<span>${m.t}</span><small class="muted" style="font-size:.72rem">${on?"Done":m.date}</small></div>`}).join("")}</div></div>
+    <div class="road"><div class="road-in">${MILESTONES.map(m=>{const on=S.checks[m.id];const now=p.cur&&p.cur.id===m.id;return `<button class="ms ${on?"done":""} ${now?"now":""}" ${m.fixed?"disabled":`data-ms="${m.id}"`} aria-pressed="${!!on}" title="${m.fixed?"Done":on?"Tap to undo":"Tap when done"}">${hex(on?"check":m.i)}<span>${m.t}</span><small class="muted" style="font-size:.72rem">${on?"Done":m.date}</small></button>`}).join("")}</div></div>
+    <p class="small muted" style="margin-top:6px">Tap a milestone when it's done. Each one adds about 11% to our progress.</p>
   </div>
 
   <div class="grid g4">
@@ -848,8 +863,8 @@ function render(scroll=true){
 window.addEventListener("hashchange",()=>{closeMenu();render(true)});
 document.addEventListener("change",e=>{
   const t=e.target;
-  if(t.dataset.check){put("checks",t.dataset.check,t.checked);render(false)}
-  else if(t.dataset.field&&t.tagName==="SELECT"){put("fields",t.dataset.field,t.value);render(false)}
+  if(t.dataset.check){setCheck(t.dataset.check,t.checked);render(false)}
+  else if(t.dataset.field&&t.tagName==="SELECT"){put("fields",t.dataset.field,t.value);linkFromField(t.dataset.field,t.value);render(false)}
   else if(t.dataset.field&&t.type==="date"){put("fields",t.dataset.field,t.value);render(false)}
 });
 let inputTimer;
@@ -860,6 +875,7 @@ document.addEventListener("input",e=>{
   if(route()==="finance"||route()==="grants"||k==="_q"){clearTimeout(inputTimer);inputTimer=setTimeout(()=>{const id=t.id,pos=t.selectionStart;render(false);const n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}},k==="_q"?120:450)}
 });
 document.addEventListener("click",e=>{
+  const mb2=e.target.closest("[data-ms]"); if(mb2){setCheck(mb2.dataset.ms,!S.checks[mb2.dataset.ms]);render(false);return}
   const tb=e.target.closest("[data-tab]"); if(tb){S.fields[tb.dataset.tab]=tb.dataset.val;render(tb.dataset.tab==="_stage"&&tb.closest(".row.between")?true:false);return}
   const eg=e.target.closest("[data-ehg]"); if(eg){put("fields","fEhg",eg.dataset.ehg);location.hash="finance";return}
   const rt=e.target.closest("[data-rate]"); if(rt){const k=rt.dataset.rate,v=+rt.dataset.val;put("ratings",k,S.ratings[k]===v?0:v);render(false)}
@@ -870,6 +886,7 @@ mb.addEventListener("click",()=>{side.classList.add("open");scrim.hidden=false;m
 scrim.addEventListener("click",closeMenu);
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMenu()});
 
+autoMilestones();
 render(false);
 setSync("","Connecting…");
 initDb();
