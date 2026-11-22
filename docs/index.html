@@ -234,7 +234,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
 /* ============================== DATA ============================== */
 const NAV=[
  ["home","house","Home Dashboard"],["hfe","file-check-2","HFE Application"],["bto","route","BTO Application Guide"],
- ["tampines","map-pin","Tampines 2027"],["finance","piggy-bank","Financial Planner"],["documents","folder-check","Documents Checklist"],
+ ["tampines","map-pin","Tampines 2027"],["grants","hand-coins","Housing Grants"],["finance","piggy-bank","Financial Planner"],["documents","folder-check","Documents Checklist"],
  ["timeline","calendar-days","Timeline & Milestones"],["knowledge","circle-help","BTO Knowledge Centre"]];
 
 const LINKS={
@@ -527,7 +527,7 @@ P.home=()=>{
       <a class="btn honey" href="#finance">${ic("piggy-bank")}Financial planner</a>
       <a class="btn" href="#documents">${ic("list-checks")}Outstanding tasks</a>
       <a class="btn" href="#tampines">${ic("map-pin")}Tampines research</a>
-      <a class="btn" href="#knowledge">${ic("circle-help")}Ask a question</a>
+      <a class="btn" href="#grants">${ic("hand-coins")}Our grants</a>
     </div>
     <div class="card cream" style="margin-top:16px;padding:16px"><div class="eyebrow">How it fits together</div>
     <p class="small" style="margin-top:6px"><b>HFE letter</b> → tells us what we can buy and how much help we get. <b>BTO application</b> → uses that letter to join a specific launch's ballot. Two separate steps, in that order.</p></div></div>
@@ -591,7 +591,7 @@ P.hfe=()=>{
      <div class="tbl"><table><thead><tr><th>What it tells us</th><th>Meaning</th><th>Why it matters</th></tr></thead><tbody>
       <tr><td><b>Eligibility to buy</b></td><td>Which HDB flat types we can buy (e.g. 2-room Flexi to 5-room) under which scheme.</td><td>We can only apply for BTO flat types shown here.</td></tr>
       <tr><td><b>HDB housing loan</b></td><td>Whether we can take an HDB loan and the maximum amount.</td><td>Sets how much we can borrow at HDB's concessionary rate (75% LTV cap).</td></tr>
-      <tr><td><b>CPF housing grants</b></td><td>Which grants and how much, e.g. Enhanced CPF Housing Grant (up to $120,000 for eligible first-timer couples).</td><td>Grants reduce the price we effectively pay.</td></tr>
+      <tr><td><b>CPF housing grants</b></td><td>Which grants and how much, e.g. Enhanced CPF Housing Grant (up to $120,000 for eligible first-timer couples).</td><td>Grants reduce the price we effectively pay. <a href="#grants">See Housing Grants</a></td></tr>
      </tbody></table></div>
      <div class="grid g2">
       <div class="fact"><h4>${ic("calendar-clock")}Validity</h4><p class="small"><b>9 months from date of issue.</b> It cannot be extended; reapply if it expires. It must be valid when we submit the BTO application.</p></div>
@@ -734,6 +734,69 @@ P.finance=()=>{
   <p class="src">Option fees, 75% LTV and AFL/key collection split per HDB; BSD tiers per IRAS (${L("iras")}). Not financial advice.</p>`;
 };
 
+const EHG=[[1500,120000],[2000,110000],[2500,105000],[3000,95000],[3500,90000],[4000,80000],[4500,70000],[5000,65000],[5500,55000],[6000,50000],[6500,40000],[7000,30000],[7500,25000],[8000,20000],[8500,10000],[9000,5000]];
+function ehgFor(inc){if(!(inc>0))return null;for(const[lim,amt]of EHG)if(inc<=lim)return amt;return 0}
+P.grants=()=>{
+  const inc=parseFloat(F("gIncome",""))||parseFloat(F("fIncome",""))||0;
+  const amt=ehgFor(inc);
+  const letter=parseFloat(F("hfeEhg",""))||0;
+  let prev=0;
+  return `${head("hand-coins","Free money (well, almost)","Housing Grants","What grants we can get for a BTO flat, how much, and how they're paid. The amount on our HFE letter is the final word; this page helps us know what to expect.")}
+  ${note("ok","<b>For a BTO flat, the grant we can get is the Enhanced CPF Housing Grant (EHG):</b> up to <b>$120,000</b> for first-timer couples with an average combined income of up to <b>$9,000</b> a month. The Family Grant and Proximity Housing Grant are for <b>resale</b> flats only.","badge-dollar-sign")}
+  <div class="grid g2">
+   <div class="card stack"><h2>Estimate our EHG</h2>
+    ${field("gIncome","Our average combined gross monthly income ($)","number",{ph:F("fIncome")||"e.g. 7200",h:"Average of the 12 months before our HFE application, including bonuses"})}
+    <div class="card cream stack" style="padding:18px">
+     <div class="stat"><span class="k">Estimated EHG</span><span class="v">${amt===null?"—":money(amt)}</span>
+     <span class="small muted">${amt===null?"Enter our income to see the band.":amt===0?"Above $9,000: no EHG, but we can still buy a BTO if within the purchase income ceiling.":"Based on the official income bands below."}</span></div>
+     ${letter?`<div class="kv"><span>EHG on our HFE letter</span><b>${money(letter)}</b></div>`:""}
+     ${amt?`<button class="btn honey" data-ehg="${amt}">${ic("arrow-right")}Use ${money(amt)} in Financial Planner</button>`:""}
+    </div>
+    ${note("info","Income is averaged, so a small raise or bonus can move us into a lower band. Each $500 band is worth $5,000–$10,000.")}
+   </div>
+   <div class="card stack"><h2>EHG amounts for first-timer couples</h2>
+    <div class="tbl"><table><thead><tr><th>Avg monthly household income</th><th class="num">EHG</th></tr></thead><tbody>
+     ${EHG.map(([lim,a])=>{const lo=prev;prev=lim;const on=amt!==null&&inc>lo&&inc<=lim;return `<tr style="${on?"background:var(--honey);color:#4A3A0E;font-weight:800":""}"><td>${lo?"$"+(lo+1).toLocaleString("en-SG")+" – ":"Up to "}$${lim.toLocaleString("en-SG")}${on?" ← us":""}</td><td class="num">${money(a)}</td></tr>`}).join("")}
+     <tr style="${amt===0?"background:var(--honey);color:#4A3A0E;font-weight:800":""}"><td>Above $9,000</td><td class="num">Not eligible</td></tr>
+    </tbody></table></div>
+    <p class="src">Source: Table 2, EHG for First-Timer Families, <a href="https://www.togetherforbetter.gov.sg/lifestage/youngadults/" target="_blank" rel="noopener">togetherforbetter.gov.sg ↗</a>. Confirm on ${L("hdb")}.</p>
+   </div>
+  </div>
+  <div class="card stack"><h2>Conditions for the EHG</h2>
+   <div class="grid g3">
+    <div class="fact"><h4>${ic("star")}First-timers</h4><p class="small">Neither of us has bought a new HDB flat, EC or DBSS before or received a CPF housing grant.</p></div>
+    <div class="fact"><h4>${ic("flag")}Citizenship</h4><p class="small">At least one of us is a Singapore Citizen.</p></div>
+    <div class="fact"><h4>${ic("banknote")}Income</h4><p class="small">Average gross monthly household income of $9,000 or less, assessed over the 12 months before the HFE application.</p></div>
+    <div class="fact"><h4>${ic("briefcase")}Employment</h4><p class="small">HDB requires at least one of us to have worked continuously for the 12 months before applying. Exceptions apply, e.g. students or NS. Check HDB for the details.</p></div>
+    <div class="fact"><h4>${ic("house")}Use</h4><p class="small">The flat must be our home. We can't own other property during the Minimum Occupation Period.</p></div>
+    <div class="fact"><h4>${ic("graduation-cap")}Still studying or in NS?</h4><p class="small">The <b>Deferred Income Assessment</b> lets us get the HFE letter now and have our EHG and loan assessed nearer key collection, when we're working.</p></div>
+   </div>
+   ${note("warn","<b>NDR 2026 change:</b> the income ceiling to <i>buy</i> a BTO was reportedly raised to $16,000 (from 24 Aug 2026), but the EHG still stops at $9,000. Couples earning $9,001–$16,000 can buy but get no EHG.")}
+  </div>
+  <div class="grid g2">
+   <div class="card stack"><h2>How the grant is paid</h2>
+    <ol class="steps small">
+     <li>The amount is set on our <b>HFE letter</b> (and may be rechecked before key collection).</li>
+     <li>It goes into our <b>CPF Ordinary Accounts</b>, not our bank. We don't get cash.</li>
+     <li>It's used to <b>reduce what we pay for the flat</b>: first the downpayment, which can also reduce the loan we need.</li>
+     <li>If we sell the flat later, the grant is <b>returned to our CPF accounts with accrued interest</b>. It isn't returned to HDB, but it's set aside for our retirement and future housing.</li>
+    </ol>
+   </div>
+   <div class="card stack"><h2>For comparison: resale-only grants</h2>
+    <p class="small muted">We can't get these for a BTO. They're here in case we ever look at a resale flat.</p>
+    <div class="tbl"><table><thead><tr><th>Grant</th><th class="num">Amount</th></tr></thead><tbody>
+     <tr><td>CPF Housing Grant (Families), 2–4 room<br><span class="small muted">Both SC / SC + PR</span></td><td class="num">$80,000 / $70,000</td></tr>
+     <tr><td>CPF Housing Grant (Families), 5-room+<br><span class="small muted">Both SC / SC + PR</span></td><td class="num">$50,000 / $40,000</td></tr>
+     <tr><td>Proximity Housing Grant: live with parents</td><td class="num">$30,000</td></tr>
+     <tr><td>Proximity Housing Grant: within 4 km of parents</td><td class="num">$20,000</td></tr>
+     <tr><td>EHG (same table as BTO)</td><td class="num">up to $120,000</td></tr>
+    </tbody></table></div>
+    <p class="small">Maximum for a first-timer couple buying resale: <b>$230,000</b>. For a BTO, the subsidy is built into HDB's lower price, so the EHG is the only grant on top.</p>
+   </div>
+  </div>
+  <p class="src">Sources: togetherforbetter.gov.sg (EHG, resale grant and PHG tables); NDR 2026 reports on income ceilings. Your HFE letter states your actual eligibility.</p>`;
+};
+
 P.documents=()=>{
   let d=0,t=0;DOCS.forEach((g,gi)=>g.items.forEach((_,i)=>{t++;if(S.checks["doc."+gi+"."+i])d++}));
   return `${head("folder-check","Paperwork","Documents Checklist","Everything we may need from HFE to key collection, grouped by type. Tick when it's ready in our shared folder.")}
@@ -797,10 +860,11 @@ document.addEventListener("input",e=>{
   const t=e.target; if(!t.dataset.field||t.tagName==="SELECT"||t.type==="date") return;
   const k=t.dataset.field;
   if(k.startsWith("_")){S.fields[k]=t.value;} else put("fields",k,t.value);
-  if(route()==="finance"||k==="_q"){clearTimeout(inputTimer);inputTimer=setTimeout(()=>{const id=t.id,pos=t.selectionStart;render(false);const n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}},k==="_q"?120:450)}
+  if(route()==="finance"||route()==="grants"||k==="_q"){clearTimeout(inputTimer);inputTimer=setTimeout(()=>{const id=t.id,pos=t.selectionStart;render(false);const n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}},k==="_q"?120:450)}
 });
 document.addEventListener("click",e=>{
   const tb=e.target.closest("[data-tab]"); if(tb){S.fields[tb.dataset.tab]=tb.dataset.val;render(false);return}
+  const eg=e.target.closest("[data-ehg]"); if(eg){put("fields","fEhg",eg.dataset.ehg);location.hash="finance";return}
   const rt=e.target.closest("[data-rate]"); if(rt){const k=rt.dataset.rate,v=+rt.dataset.val;put("ratings",k,S.ratings[k]===v?0:v);render(false)}
 });
 const side=document.getElementById("side"),scrim=document.getElementById("scrim"),mb=document.getElementById("menuBtn");
